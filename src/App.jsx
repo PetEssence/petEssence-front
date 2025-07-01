@@ -4,12 +4,13 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import "./index.css";
 import { ConfigProvider } from "antd";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
 import "./App.css";
-import UsersPage from "./pages/Users";
+import Especie from "./pages/Especie";
 import Home from "./pages/Home";
 
 function ProtectedRoute({ children }) {
@@ -23,7 +24,7 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  return user ? <>{children}</> : <Navigate to="/home" />;
+  return user ? <>{children}</> : <Navigate to="/login" />;
 }
 
 function PublicRoute({ children }) {
@@ -63,10 +64,10 @@ export default function App() {
                 }
               />
               <Route
-                path="/users"
+                path="/especie"
                 element={
                   <ProtectedRoute>
-                    <UsersPage />
+                    <Especie />
                   </ProtectedRoute>
                 }
               />
@@ -74,10 +75,11 @@ export default function App() {
                 path="/home"
                 element={
                   <ProtectedRoute>
-                    <Home/>
+                    <Home />
                   </ProtectedRoute>
                 }
               />
+              <Route path="/" element={<Navigate to="/home" />} />
             </Routes>
           </div>
         </Router>

@@ -1,7 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+  "./index.html",
+  "./src/**/*.{js,ts,jsx,tsx,mdx}",
+  "./components/**/*.{js,ts,jsx,tsx}", 
+  "./pages/**/*.{js,ts,jsx,tsx}",     
+],
+
   theme: {
     extend: {
       spacing: {
@@ -11,8 +17,8 @@ module.exports = {
       borderRadius: {
         '4xl': '2rem',
       },
-          colors: {
-        primaryGreen: '#29C28D',    
+      colors: {
+        primaryGreen: '#29C28D',
       },
     }
   },
@@ -21,5 +27,10 @@ module.exports = {
       borderColor: ['focus-visible'],
       opacity: ['disabled'],
     }
-  }
+  },
+  corePlugins: {
+    preflight: true,
+  },
+  important: false,
+
 }

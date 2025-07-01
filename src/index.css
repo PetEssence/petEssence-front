@@ -19,21 +19,19 @@
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
 
 #root {
   width: 100%;
-  margin: 0 auto;
-  text-align: center;
 }
 
 /* Reset para compatibilidade com Ant Design */
 body {
   color: rgba(0, 0, 0, 0.88);
   background-color: #ffffff;
+}
+* {
+  box-sizing: border-box;
 }
