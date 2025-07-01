@@ -1,0 +1,26 @@
+/* Customizações do Ant Design */
+.ant-layout-sider {
+  background: #fff !important;
+}
+
+.ant-menu {
+  border-right: none !important;
+}
+
+.ant-layout-header {
+  height: 64px !important;
+  line-height: 64px !important;
+}
+
+/* Responsividade customizada */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: fixed !important;
+    height: 100vh !important;
+    z-index: 999 !important;
+  }
+
+  .ant-layout-content {
+    margin-left: 0 !important;
+  }
+}
