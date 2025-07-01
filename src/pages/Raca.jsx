@@ -21,62 +21,62 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 
-export default function Especie() {
-  const [especie, setEspecie] = useState([]);
+export default function Raca() {
+  const [raca, setRaca] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingEspecie, setEditingEspecie] = useState(null);
+  const [editingRaca, setEditingRaca] = useState(null);
   const [form] = Form.useForm();
-  const especieCollectionRef = collection(db, "especie");
+  const racaCollectionRef = collection(db, "raca");
 
   useEffect(() => {
-    loadEspecies();
+    loadRacas();
   }, []);
 
-  const loadEspecies = async () => {
+  const loadRacas = async () => {
     setLoading(true);
     try {
-      const especieData = await getDocs(especieCollectionRef);
-      setEspecie(
-        especieData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+      const racaData = await getDocs(racaCollectionRef);
+      setRaca(
+        racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
       );
     } catch (error) {
-      message.error("Erro ao carregar espécies");
+      message.error("Erro ao carregar raças");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddEspecie = () => {
-    setEditingEspecie(null);
+  const handleAddRaca = () => {
+    setEditingRaca(null);
     form.resetFields();
     setIsModalVisible(true);
   };
 
-  const handleEditEspecie = (especie) => {
-    setEditingEspecie(especie);
-    form.setFieldsValue(especie);
+  const handleEditRaca = (raca) => {
+    setEditingRaca(raca);
+    form.setFieldsValue(raca);
     setIsModalVisible(true);
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      if (editingEspecie) {
-        const updatedEspecies = especie.map((especie) =>
-          especie.id === editingEspecie.id ? { ...especie, ...values } : especie
+      if (editingRaca) {
+        const updatedRaca = raca.map((raca) =>
+          raca.id === editingRaca.id ? { ...raca, ...values } : raca
         );
-        setEspecie(updatedEspecies);
-        message.success("Espécie atualizada com sucesso!");
+        setRaca(updatedRaca);
+        message.success("Raça atualizada com sucesso!");
       } else {
-        const docRef = await addDoc(especieCollectionRef, {
+        const docRef = await addDoc(racaCollectionRef, {
           name: values.name,
           createdAt: new Date().toISOString().split("T")[0],
           isActive: true,
         });
-        setEspecie([
-          ...especie,
+        setRaca([
+          ...raca,
           {
             id: docRef.id,
             name: values.name,
@@ -84,7 +84,7 @@ export default function Especie() {
             isActive: true,
           },
         ]);
-        message.success("Espécie adicionada com sucesso!");
+        message.success("Raça adicionada com sucesso!");
       }
       setIsModalVisible(false);
       form.resetFields();
@@ -93,40 +93,40 @@ export default function Especie() {
     }
   };
 
-  const handleActiveStatusEspecie = (especieId, activeStatus) => {
+  const handleActiveStatus = (racaId, activeStatus) => {
     Modal.confirm({
       title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
         activeStatus ? "desativar" : "ativar"
-      } esta espécie?`,
+      } esta raça?`,
       okText: "Confirmar",
       okType: "primary",
       cancelText: "Cancelar",
-      okButtonProps: { className: "!bg-primaryGreen !hover:bg-primaryGreenHouver" },
+      okButtonProps: { className: "!bg-primaryGreen !hover:bg-primaryGreenHouver"},
       onOk: async () => {
         try {
-          const especieDoc = doc(db, "especie", especieId);
+          const racaDoc = doc(db, "raca", racaId);
           const newStatus = { isActive: !activeStatus };
-          await updateDoc(especieDoc, newStatus);
-          const updatedEspecies = especie.map((item) =>
-            item.id === especieId ? { ...item, isActive: !activeStatus } : item
+          await updateDoc(racaDoc, newStatus);
+          const updatedRaca = raca.map((item) =>
+            item.id === racaId ? { ...item, isActive: !activeStatus } : item
           );
-          setEspecie(updatedEspecies);
-          message.success("Espécie atualizada com sucesso!");
+          setRaca(updatedRaca);
+          message.success("Raça atualizada com sucesso!");
         } catch (error) {
-          message.error("Erro ao excluir espécie");
+          message.error("Erro ao excluir raça");
         }
       },
     });
   };
 
-  const filteredEspecies = especie.filter((especie) =>
-    especie.name.toLowerCase().includes(searchText.toLowerCase())
+  const filteredRaças = raca.filter((raca) =>
+    raca.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
     {
-      title: "Espécie",
+      title: "Raça",
       dataIndex: "name",
       width: 800,
       key: "name",
@@ -163,12 +163,12 @@ export default function Especie() {
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleEditEspecie(record)}
+            onClick={() => handleEditRaca(record)}
           />
           <Button
             type="text"
             onClick={() =>
-              handleActiveStatusEspecie(record.id, record.isActive)
+              handleActiveStatus(record.id, record.isActive)
             }
           >
             {record.isActive == true ? "Desativar" : "Ativar"}
@@ -183,21 +183,21 @@ export default function Especie() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Espécies</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Raças</h1>
           </div>
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAddEspecie}
+            onClick={handleAddRaca}
           >
-            Adicionar Espécie
+            Adicionar Raça
           </Button>
         </div>
 
         <Card>
           <div className="mb-4">
             <Input
-              placeholder="Buscar espécie..."
+              placeholder="Buscar raça..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -207,14 +207,14 @@ export default function Especie() {
 
           <Table
             columns={columns}
-            dataSource={filteredEspecies}
+            dataSource={filteredRaças}
             rowKey="id"
             loading={loading}
           />
         </Card>
 
         <Modal
-          title={editingEspecie ? "Editar Espécie" : "Adicionar Espécie"}
+          title={editingRaca ? "Editar Raça" : "Adicionar Raça"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"

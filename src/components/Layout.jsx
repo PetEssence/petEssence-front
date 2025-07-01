@@ -27,12 +27,11 @@ export default function AppLayout({ children }) {
     //   label: "Dashboard",
     //   onClick: () => navigate("/dashboard"),
     // },
-    // {
-    //   key: "/profile",
-    //   icon: <UserOutlined />,
-    //   label: "Perfil",
-    //   onClick: () => navigate("/profile"),
-    // },
+    {
+      key: "/raca",
+      label: "Raças",
+      onClick: () => navigate("/raca"),
+    },
     {
       key: "/especie",
       label: "Espécies",

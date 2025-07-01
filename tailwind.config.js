@@ -19,6 +19,7 @@ module.exports = {
       },
       colors: {
         primaryGreen: '#29C28D',
+        primaryGreenHouver: '#22A478',
       },
     }
   },
