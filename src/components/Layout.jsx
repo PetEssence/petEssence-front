@@ -21,12 +21,11 @@ export default function AppLayout({ children }) {
   } = theme.useToken();
 
   const menuItems = [
-    // {
-    //   key: "/dashboard",
-    //   icon: <DashboardOutlined />,
-    //   label: "Dashboard",
-    //   onClick: () => navigate("/dashboard"),
-    // },
+    {
+      key: "/usuario",
+      label: "Usuários",
+      onClick: () => navigate("/usuario"),
+    },
     {
       key: "/raca",
       label: "Raças",

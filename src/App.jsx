@@ -13,6 +13,7 @@ import "./App.css";
 import Especie from "./pages/Especie";
 import Home from "./pages/Home";
 import Raca from "./pages/Raca";
+import Usuario from "./pages/Usuario";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -48,7 +49,7 @@ export default function App() {
       theme={{
         token: {
           colorPrimary: "#29C28D",
-          colorPrimaryHover: '#22A478',
+          colorPrimaryHover: "#22A478",
           borderRadius: 6,
         },
       }}
@@ -86,6 +87,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Raca />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/usuario"
+                element={
+                  <ProtectedRoute>
+                    <Usuario />
                   </ProtectedRoute>
                 }
               />

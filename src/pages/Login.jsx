@@ -143,8 +143,8 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="flex items-center justify-center flex-col">
-      <Card className="shadow-lg bg-primaryGreen">
+    <div className="h-screen flex items-center justify-center">
+      <Card className="shadow-lg">
         <img src={logoLight} className="w-2/3"/>
         {showLoginForm ? LoginForm() : RegisterForm()}
         <Button type="text" onClick={() => setShowLoginForm(!showLoginForm)}>
