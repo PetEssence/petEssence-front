@@ -9,6 +9,7 @@ import {
   Modal,
   Form,
   message,
+  Select,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -21,70 +22,79 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 
-export default function Raca() {
-  const [raca, setRaca] = useState([]);
+export default function Vacina() {
+  const [vacina, setVacina] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingRaca, setEditingRaca] = useState(null);
+  const [editingVacina, setEditingVacina] = useState(null);
   const [form] = Form.useForm();
-  const racaCollectionRef = collection(db, "raca");
+  const vacinaCollectionRef = collection(db, "vacina");
+
+  const optionsSelectReaplicationPeriod = [
+    { value: "anual", label: "Anual" },
+    { value: "biannual", label: "Semestral" },
+    { value: "monthly", label: "Mensal" },
+    { value: "unique", label: "Dose Única" },
+  ];
 
   useEffect(() => {
-    loadRacas();
+    loadVacinas();
   }, []);
 
-  const loadRacas = async () => {
+  const loadVacinas = async () => {
     setLoading(true);
     try {
-      const racaData = await getDocs(racaCollectionRef);
-      setRaca(
-        racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-      );
+      const vacinaData = await getDocs(vacinaCollectionRef);
+      setVacina(vacinaData.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
-      message.error("Erro ao carregar raças");
+      message.error("Erro ao carregar vacinas");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddRaca = () => {
-    setEditingRaca(null);
+  const handleAddVacina = () => {
+    setEditingVacina(null);
     form.resetFields();
     setIsModalVisible(true);
   };
 
-  const handleEditRaca = (raca) => {
-    setEditingRaca(raca);
-    form.setFieldsValue(raca);
+  const handleEditVacina = (vacina) => {
+    setEditingVacina(vacina);
+    form.setFieldsValue(vacina);
     setIsModalVisible(true);
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      if (editingRaca) {
-        const updatedRaca = raca.map((raca) =>
-          raca.id === editingRaca.id ? { ...raca, ...values } : raca
+      if (editingVacina) {
+        const updatedVacina = vacina.map((vacina) =>
+          vacina.id === editingVacina.id ? { ...vacina, ...values } : vacina
         );
-        setRaca(updatedRaca);
-        message.success("Raça atualizada com sucesso!");
+        setVacina(updatedVacina);
+        message.success("Vacina atualizada com sucesso!");
       } else {
-        const docRef = await addDoc(racaCollectionRef, {
+        const docRef = await addDoc(vacinaCollectionRef, {
           name: values.name,
+          targetDisease: values.targetDisease,
+          reaplicationPeriod: values.reaplicationPeriod,
           createdAt: new Date().toISOString().split("T")[0],
           isActive: true,
         });
-        setRaca([
-          ...raca,
+        setVacina([
+          ...vacina,
           {
             id: docRef.id,
             name: values.name,
+            targetDisease: values.targetDisease,
+            reaplicationPeriod: values.reaplicationPeriod,
             createdAt: new Date().toISOString().split("T")[0],
             isActive: true,
           },
         ]);
-        message.success("Raça adicionada com sucesso!");
+        message.success("Vacina adicionada com sucesso!");
       }
       setIsModalVisible(false);
       form.resetFields();
@@ -93,40 +103,42 @@ export default function Raca() {
     }
   };
 
-  const handleActiveStatus = (racaId, activeStatus) => {
+  const handleActiveStatus = (vacinaId, activeStatus) => {
     Modal.confirm({
       title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
         activeStatus ? "desativar" : "ativar"
-      } esta raça?`,
+      } esta vacina?`,
       okText: "Confirmar",
       okType: "primary",
       cancelText: "Cancelar",
-      okButtonProps: { className: "!bg-primaryGreen !hover:bg-primaryGreenHouver"},
+      okButtonProps: {
+        className: "!bg-primaryGreen !hover:bg-primaryGreenHouver",
+      },
       onOk: async () => {
         try {
-          const racaDoc = doc(racaCollectionRef, racaId);
+          const vacinaDoc = doc(vacinaCollectionRef, vacinaId);
           const newStatus = { isActive: !activeStatus };
-          await updateDoc(racaDoc, newStatus);
-          const updatedRaca = raca.map((item) =>
-            item.id === racaId ? { ...item, isActive: !activeStatus } : item
+          await updateDoc(vacinaDoc, newStatus);
+          const updatedVacina = vacina.map((item) =>
+            item.id === vacinaId ? { ...item, isActive: !activeStatus } : item
           );
-          setRaca(updatedRaca);
-          message.success("Raça atualizada com sucesso!");
+          setVacina(updatedVacina);
+          message.success("Vacina atualizada com sucesso!");
         } catch (error) {
-          message.error("Erro ao excluir raça");
+          message.error("Erro ao excluir Vacina");
         }
       },
     });
   };
 
-  const filteredRaças = raca.filter((raca) =>
-    raca.name.toLowerCase().includes(searchText.toLowerCase())
+  const filteredVacinas = vacina.filter((vacina) =>
+    vacina.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
     {
-      title: "Raça",
+      title: "Nome",
       dataIndex: "name",
       width: 800,
       key: "name",
@@ -137,6 +149,39 @@ export default function Raca() {
           </div>
         </div>
       ),
+    },
+    {
+      title: "Doença alvo",
+      dataIndex: "targetDisease",
+      width: 800,
+      key: "targetDisease",
+      render: (_, record) => (
+        <div className="flex items-center space-x-3">
+          <div>
+            <div className="text-gray-500 text-sm">{record.targetDisease}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Período de reaplicação",
+      dataIndex: "reaplicationPeriod",
+      width: 800,
+      key: "reaplicationPeriod",
+      render: (_, record) => {
+        const option = optionsSelectReaplicationPeriod.find(
+          (opt) => opt.value === record.reaplicationPeriod
+        );
+        return (
+          <div className="flex items-center space-x-3">
+            <div>
+              <div className="text-gray-500 text-sm">
+                {option.label}
+              </div>
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: "Status",
@@ -163,13 +208,11 @@ export default function Raca() {
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleEditRaca(record)}
+            onClick={() => handleEditVacina(record)}
           />
           <Button
             type="text"
-            onClick={() =>
-              handleActiveStatus(record.id, record.isActive)
-            }
+            onClick={() => handleActiveStatus(record.id, record.isActive)}
           >
             {record.isActive == true ? "Desativar" : "Ativar"}
           </Button>
@@ -183,21 +226,21 @@ export default function Raca() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Raças</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Vacinas</h1>
           </div>
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAddRaca}
+            onClick={handleAddVacina}
           >
-            Adicionar Raça
+            Adicionar vacina
           </Button>
         </div>
 
         <Card>
           <div className="mb-4">
             <Input
-              placeholder="Buscar raça..."
+              placeholder="Buscar vacina..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -207,14 +250,14 @@ export default function Raca() {
 
           <Table
             columns={columns}
-            dataSource={filteredRaças}
+            dataSource={filteredVacinas}
             rowKey="id"
             loading={loading}
           />
         </Card>
 
         <Modal
-          title={editingRaca ? "Editar Raça" : "Adicionar Raça"}
+          title={editingVacina ? "Editar vacina" : "Adicionar vacina"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"
@@ -229,6 +272,27 @@ export default function Raca() {
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />
+            </Form.Item>
+
+            <Form.Item
+              label="Doença alvo"
+              name="targetDisease"
+              rules={[{ required: true, message: "Por favor, insira o nome!" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label="Período de reaplicação"
+              name="reaplicationPeriod"
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor, selecione o período de reaplicação!",
+                },
+              ]}
+            >
+              <Select options={optionsSelectReaplicationPeriod}></Select>
             </Form.Item>
           </Form>
         </Modal>

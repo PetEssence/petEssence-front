@@ -28,8 +28,6 @@ import { db } from "../config/firebase";
 import InputMask from "react-input-mask";
 import dayjs from "dayjs";
 
-const { Option } = Select;
-
 export default function Usuario() {
   const [usuario, setUsuario] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +35,6 @@ export default function Usuario() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingData, setEditingUsuario] = useState(null);
   const [form] = Form.useForm();
-
   const usuarioCollectionRef = collection(db, "usuario");
 
   useEffect(() => {
@@ -93,40 +90,39 @@ export default function Usuario() {
     return resto === parseInt(cpf.charAt(10));
   };
 
-  const estados = [
-    "AC",
-    "AL",
-    "AP",
-    "AM",
-    "BA",
-    "CE",
-    "DF",
-    "ES",
-    "GO",
-    "MA",
-    "MT",
-    "MS",
-    "MG",
-    "PA",
-    "PB",
-    "PR",
-    "PE",
-    "PI",
-    "RJ",
-    "RN",
-    "RS",
-    "RO",
-    "RR",
-    "SC",
-    "SP",
-    "SE",
-    "TO",
+  const estadosOptions = [
+    { value: "AC", label: "AC" },
+    { value: "AL", label: "AL" },
+    { value: "AP", label: "AP" },
+    { value: "AM", label: "AM" },
+    { value: "BA", label: "BA" },
+    { value: "CE", label: "CE" },
+    { value: "DF", label: "DF" },
+    { value: "ES", label: "ES" },
+    { value: "GO", label: "GO" },
+    { value: "MA", label: "MA" },
+    { value: "MT", label: "MT" },
+    { value: "MS", label: "MS" },
+    { value: "MG", label: "MG" },
+    { value: "PA", label: "PA" },
+    { value: "PB", label: "PB" },
+    { value: "PR", label: "PR" },
+    { value: "PE", label: "PE" },
+    { value: "PI", label: "PI" },
+    { value: "RJ", label: "RJ" },
+    { value: "RN", label: "RN" },
+    { value: "RS", label: "RS" },
+    { value: "RO", label: "RO" },
+    { value: "RR", label: "RR" },
+    { value: "SC", label: "SC" },
+    { value: "SP", label: "SP" },
+    { value: "SE", label: "SE" },
+    { value: "TO", label: "TO" },
   ];
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-
       const formattedValues = {
         ...values,
         birthDate: values.birthDate
@@ -135,7 +131,7 @@ export default function Usuario() {
       };
 
       if (editingData) {
-        const usuarioDoc = doc(db, "usuario", editingData.id);
+        const usuarioDoc = doc(usuarioCollectionRef, editingData.id);
         await updateDoc(usuarioDoc, formattedValues);
 
         const updatedUsuarios = usuario.map((user) =>
@@ -163,7 +159,6 @@ export default function Usuario() {
         ]);
         message.success("Usuário adicionado com sucesso!");
       }
-
       setIsModalVisible(false);
       form.resetFields();
     } catch (error) {
@@ -186,7 +181,7 @@ export default function Usuario() {
       },
       onOk: async () => {
         try {
-          const usuarioDoc = doc(db, "usuario", usuarioId);
+          const usuarioDoc = doc(usuarioCollectionRef, usuarioId);
           const newStatus = { isActive: !activeStatus };
           await updateDoc(usuarioDoc, newStatus);
 
@@ -221,7 +216,6 @@ export default function Usuario() {
       }
     }
   };
-
   const filteredUsuarios = usuario.filter((usuario) =>
     usuario.name.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -240,7 +234,6 @@ export default function Usuario() {
         </div>
       ),
     },
-
     {
       title: "E-mail",
       dataIndex: "email",
@@ -323,7 +316,6 @@ export default function Usuario() {
             Adicionar Usuário
           </Button>
         </div>
-
         <Card>
           <div className="mb-4">
             <Input
@@ -341,7 +333,6 @@ export default function Usuario() {
             loading={loading}
           />
         </Card>
-
         <Modal
           title={editingData ? "Editar Usuário" : "Adicionar Usuário"}
           open={isModalVisible}
@@ -359,7 +350,6 @@ export default function Usuario() {
             >
               <Input />
             </Form.Item>
-
             <Form.Item
               label="CPF"
               name="cpf"
@@ -393,7 +383,6 @@ export default function Usuario() {
                 {(inputProps) => <Input {...inputProps} />}
               </InputMask>
             </Form.Item>
-
             <Form.Item
               label="E-mail"
               name="email"
@@ -427,7 +416,6 @@ export default function Usuario() {
             >
               <Input />
             </Form.Item>
-
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Data de Nascimento"
@@ -458,7 +446,6 @@ export default function Usuario() {
                   }
                 />
               </Form.Item>
-
               <Form.Item
                 label="Celular/Telefone"
                 name="phone"
@@ -475,9 +462,7 @@ export default function Usuario() {
                 </InputMask>
               </Form.Item>
             </div>
-
             <Divider>Endereço</Divider>
-
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="CEP"
@@ -491,7 +476,6 @@ export default function Usuario() {
                   {(inputProps) => <Input {...inputProps} />}
                 </InputMask>
               </Form.Item>
-
               <Form.Item
                 label="Bairro"
                 name="neighborhood"
@@ -503,7 +487,6 @@ export default function Usuario() {
                 <Input />
               </Form.Item>
             </div>
-
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Rua"
@@ -515,7 +498,6 @@ export default function Usuario() {
               >
                 <Input />
               </Form.Item>
-
               <Form.Item
                 label="Número"
                 name="number"
@@ -526,7 +508,6 @@ export default function Usuario() {
                 <Input />
               </Form.Item>
             </div>
-
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Cidade"
@@ -538,7 +519,6 @@ export default function Usuario() {
               >
                 <Input />
               </Form.Item>
-
               <Form.Item
                 label="Estado"
                 name="state"
@@ -550,22 +530,14 @@ export default function Usuario() {
                 <Select
                   placeholder="Selecione o estado"
                   defaultValue={undefined}
-                >
-                  {estados.map((uf) => (
-                    <Option key={uf} value={uf}>
-                      {uf}
-                    </Option>
-                  ))}
-                </Select>
+                  options={estadosOptions}
+                />
               </Form.Item>
             </div>
-
             <Form.Item label="Complemento" name="complement">
               <Input />
             </Form.Item>
-
             <Divider plain={false}>Permissão</Divider>
-
             <Form.Item
               label="Cargo"
               name="role"
@@ -573,14 +545,14 @@ export default function Usuario() {
                 { required: true, message: "Por favor, insira o cargo!" },
               ]}
             >
-              <Select placeholder="Selecione o cargo" defaultValue={undefined}>
-                <Option key={1} value={"admin"}>
-                  Administrador
-                </Option>
-                <Option key={2} value={"client"}>
-                  Cliente
-                </Option>
-              </Select>
+              <Select
+                placeholder="Selecione o cargo"
+                defaultValue={undefined}
+                options={[
+                  { value: "admin", label: "Administrador" },
+                  { value: "client", label: "Cliente" },
+                ]}
+              />
             </Form.Item>
           </Form>
         </Modal>

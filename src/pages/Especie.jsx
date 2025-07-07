@@ -105,7 +105,7 @@ export default function Especie() {
       okButtonProps: { className: "!bg-primaryGreen !hover:bg-primaryGreenHouver" },
       onOk: async () => {
         try {
-          const especieDoc = doc(db, "especie", especieId);
+          const especieDoc = doc(especieCollectionRef, especieId);
           const newStatus = { isActive: !activeStatus };
           await updateDoc(especieDoc, newStatus);
           const updatedEspecies = especie.map((item) =>
@@ -212,7 +212,6 @@ export default function Especie() {
             loading={loading}
           />
         </Card>
-
         <Modal
           title={editingEspecie ? "Editar Espécie" : "Adicionar Espécie"}
           open={isModalVisible}

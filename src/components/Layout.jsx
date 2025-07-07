@@ -5,11 +5,15 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  TagOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import logoDark from "../assets/logo_dark.png";
+import { PawPrintIcon, SyringeIcon } from "@phosphor-icons/react";
 const { Header, Sider, Content } = Layout;
+
 
 export default function AppLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -23,18 +27,32 @@ export default function AppLayout({ children }) {
   const menuItems = [
     {
       key: "/usuario",
+      icon: <UserOutlined />,
       label: "Usuários",
       onClick: () => navigate("/usuario"),
     },
     {
       key: "/raca",
+      icon: <TagOutlined />,
       label: "Raças",
       onClick: () => navigate("/raca"),
     },
     {
       key: "/especie",
       label: "Espécies",
+      icon: <AppstoreOutlined />,
       onClick: () => navigate("/especie"),
+    },
+        {
+      key: "/pet",
+      label: "Pets",
+      icon: <PawPrintIcon />,
+      onClick: () => navigate("/pet"),
+    },        {
+      key: "/vacina",
+      label: "Vacinas",
+      icon: <SyringeIcon />,
+      onClick: () => navigate("/vacina"),
     },
   ];
 
@@ -59,14 +77,14 @@ export default function AppLayout({ children }) {
         trigger={null}
         collapsible
         collapsed={collapsed}
-        className="bg-white shadow-md p-4 "
+        className="shadow-md p-4"
       > 
         <div className="flex flex-col justify-between h-screen items-center">
           <Menu
             mode="inline"
             selectedKeys={[location.pathname]}
             items={menuItems}
-            className="border-r-0"
+            className="mr-2"
           />
           <Button
             type="text"

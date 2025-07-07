@@ -14,6 +14,9 @@ import Especie from "./pages/Especie";
 import Home from "./pages/Home";
 import Raca from "./pages/Raca";
 import Usuario from "./pages/Usuario";
+import Pet from "./pages/Pet/Pet";
+import PetMoreInfo from "./pages/Pet/PetMoreInfo";
+import Vacina from "./pages/Vacina";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -95,6 +98,30 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Usuario />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pet"
+                element={
+                  <ProtectedRoute>
+                    <Pet />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vacina"
+                element={
+                  <ProtectedRoute>
+                    <Vacina />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/:petId"
+                element={
+                  <ProtectedRoute>
+                    <PetMoreInfo />
                   </ProtectedRoute>
                 }
               />
