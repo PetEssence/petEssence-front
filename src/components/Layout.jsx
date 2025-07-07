@@ -1,10 +1,7 @@
-import { useState } from "react";
-import { Layout, Menu, Avatar, Dropdown, Button, theme } from "antd";
+import { Layout, Menu, Avatar, Dropdown, theme } from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   TagOutlined,
   AppstoreOutlined,
 } from "@ant-design/icons";
@@ -16,7 +13,6 @@ const { Header, Sider, Content } = Layout;
 
 
 export default function AppLayout({ children }) {
-  const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -72,25 +68,15 @@ export default function AppLayout({ children }) {
   ];
 
   return (
-    <Layout>
+    <Layout className="min-h-screen">
       <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        className="shadow-md p-4"
+        className="shadow-md pt-4"
       > 
-        <div className="flex flex-col justify-between h-screen items-center">
+        <div className="flex flex-col justify-between h-screen items-center fixed min-h-screen px-4 ">
           <Menu
             mode="inline"
             selectedKeys={[location.pathname]}
             items={menuItems}
-            className="mr-2"
-          />
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-lg mb-8"
           />
         </div>
       </Sider>
