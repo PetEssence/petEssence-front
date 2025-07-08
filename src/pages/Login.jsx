@@ -3,16 +3,20 @@ import { Form, Input, Button, Card } from "antd";
 import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
 import { useAuth } from "../hooks/useAuth";
 import logoLight from "../assets/logo-light.png";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const [showLoginForm, setShowLoginForm] = useState(true);
+  const navigate = useNavigate();
 
   const onLogin = async (values) => {
     setLoading(true);
     try {
       await login(values.email, values.password);
+      navigate('/home')
+
     } catch (error) {
       console.error("Erro no login:", error);
     } finally {

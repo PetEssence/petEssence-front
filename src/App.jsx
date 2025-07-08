@@ -17,6 +17,8 @@ import Usuario from "./pages/Usuario";
 import Pet from "./pages/Pet/Pet";
 import PetMoreInfo from "./pages/Pet/PetMoreInfo";
 import Vacina from "./pages/Vacina";
+import PetVacinas from "./pages/Pet/PetVacinas";
+import PetVermifugo from "./pages/Pet/PetVermifugo";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -122,6 +124,22 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <PetMoreInfo />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/:petId/vacinas"
+                element={
+                  <ProtectedRoute>
+                    <PetVacinas />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/:petId/vermifugos"
+                element={
+                  <ProtectedRoute>
+                    <PetVermifugo />
                   </ProtectedRoute>
                 }
               />

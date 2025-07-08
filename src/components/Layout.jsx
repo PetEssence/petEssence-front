@@ -54,12 +54,6 @@ export default function AppLayout({ children }) {
 
   const userMenuItems = [
     {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: "Perfil",
-      onClick: () => navigate("/profile"),
-    },
-    {
       key: "logout",
       icon: <LogoutOutlined />,
       label: "Sair",

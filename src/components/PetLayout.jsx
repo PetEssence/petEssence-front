@@ -1,36 +1,30 @@
-import {useState} from "react";
 import { Menu } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
 
-export default function PetLayout() {
+export default function PetLayout({petId}) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const items = [
     {
       label: "Dados gerais",
       key: "geral",
+      onClick: () => navigate(`/${petId}`),
     },
     {
       label: "Vacinas",
       key: "vaccine",
+      onClick: () => navigate(`/${petId}/vacinas`),
     },
     {
       label: "Vermífugo",
       key: "vermifuge",
-    },
-    {
-      key: "Atendimentos",
-      label: "care"
-    },
+      onClick: () => navigate(`/${petId}/vermifugos`),
+
+    }
   ];
-  const [current, setCurrent] = useState("geral");
-  const onClick = (e) => {
-    console.log("click ", e);
-    setCurrent(e.key);
-  };
+
   return (
-    <Menu
-      onClick={onClick}
-      selectedKeys={[current]}
-      mode="horizontal"
-      items={items}
-    />
+    <Menu selectedKeys={[location.pathname]} mode="horizontal" items={items} />
   );
 }

@@ -247,7 +247,7 @@ export default function PetMoreInfo() {
   };
   return (
     <AppLayout>
-      <PetLayout />
+      <PetLayout petId={pet.id}/>
       <div className="space-y-6 flex items-center justify-center w-full">
         <Form
           form={form}
