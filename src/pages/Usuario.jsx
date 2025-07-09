@@ -125,9 +125,11 @@ export default function Usuario() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
+        complement: values.complement || "",
         birthDate: values.birthDate
           ? values.birthDate.format("YYYY-MM-DD")
           : null,
+        isActive: true,
       };
 
       if (editingData) {
@@ -142,9 +144,7 @@ export default function Usuario() {
       } else {
         const docRef = await addDoc(usuarioCollectionRef, {
           ...formattedValues,
-          complement: values.complement || "",
           createdAt: new Date().toISOString().split("T")[0],
-          isActive: true,
         });
 
         setUsuario([
@@ -152,9 +152,7 @@ export default function Usuario() {
           {
             id: docRef.id,
             ...formattedValues,
-            complement: values.complement || "",
             createdAt: new Date().toISOString().split("T")[0],
-            isActive: true,
           },
         ]);
         message.success("Usuário adicionado com sucesso!");

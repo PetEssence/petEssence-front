@@ -50,7 +50,7 @@ export default function PetVacinas() {
   const loadPetVacinas = async () => {
     setLoading(true);
     try {
-      const q = query(petVacinasCollectionRef, where("petId", "==", petId))
+      const q = query(petVacinasCollectionRef, where("petId", "==", petId));
       const data = await getDocs(q);
       setPetVacinas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
@@ -92,35 +92,36 @@ export default function PetVacinas() {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const formattedValues = {
+        ...values,
+        vaccinationDate: values.vaccinationDate
+          ? values.vaccinationDate.format("YYYY-MM-DD")
+          : null,
+        petId: petId,
+        isActive: true,
+      };
+
       if (editingPetVacina) {
+        const petVacinaDoc = doc(petVacinasCollectionRef, editingPetVacina.id);
         const updatedData = petVacinas.map((petVacina) =>
           petVacina.id === editingPetVacina.id
             ? { ...petVacina, ...values }
             : petVacina
         );
         setPetVacinas(updatedData);
+        await updateDoc(petVacinaDoc, formattedValues);
         message.success("Vacina do pet atualizada com sucesso!");
       } else {
         const docRef = await addDoc(petVacinasCollectionRef, {
-          ...values,
-          vaccinationDate: values.vaccinationDate
-            ? values.vaccinationDate.format("YYYY-MM-DD")
-            : null,
+          ...formattedValues,
           createdAt: new Date().toISOString().split("T")[0],
-          petId: petId,
-          isActive: true,
         });
         setPetVacinas([
           ...petVacinas,
           {
-            ...values,
             id: docRef.id,
-            vaccinationDate: values.vaccinationDate
-              ? values.vaccinationDate.format("YYYY-MM-DD")
-              : null,
+            ...formattedValues,
             createdAt: new Date().toISOString().split("T")[0],
-            petId: petId,
-            isActive: true,
           },
         ]);
         message.success("Vacina do pet adicionada com sucesso!");
@@ -260,100 +261,103 @@ export default function PetVacinas() {
     <AppLayout>
       <PetLayout petId={petId} />
       <div className="flex gap-5 pt-6">
-      <PetCard/>
+        <PetCard />
 
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2 mt-4 ml-2">
-              Vacinas do Pet
-            </h1>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 mb-2 mt-4 ml-2">
+                Vacinas do Pet
+              </h1>
+            </div>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddPetVacina}
+            >
+              Adicionar Vacina
+            </Button>
           </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddPetVacina}
-          >
-            Adicionar Vacina
-          </Button>
-        </div>
 
-        <Table
-          columns={columns}
-          dataSource={petVacinas}
-          rowKey="id"
-          loading={loading}
-        />
-        <Modal
-          title={editingPetVacina ? "Editar Vacina" : "Adicionar Vacina"}
-          open={isModalVisible}
-          onOk={handleModalOk}
-          okText="Confirmar"
-          cancelText="Cancelar"
-          onCancel={() => setIsModalVisible(false)}
-          width={600}
-        >
-          <Form form={form} layout="vertical" className="mt-4">
-            <Form.Item
-              label="Vacina"
-              className="w-3/6"
-              name="vaccineId"
-              rules={[
-                { required: true, message: "Por favor, selecione a vacina!" },
-              ]}
-            >
-              <Select placeholder="Selecione a Vacina" defaultValue={undefined}>
-                {vacinas.map((vacina) => (
-                  <Option key={vacina.id} value={vacina.id}>
-                    {vacina.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item
-              label="Data da aplicação"
-              name="vaccinationDate"
-              className="w-3/6"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, insira a data de aplicação!",
-                },
-                {
-                  validator: (_, value) => {
-                    if (!value) return Promise.resolve();
-                    if (value.isAfter(dayjs())) {
-                      return Promise.reject("A data não pode ser no futuro!");
-                    }
-                    return Promise.resolve();
+          <Table
+            columns={columns}
+            dataSource={petVacinas}
+            rowKey="id"
+            loading={loading}
+          />
+          <Modal
+            title={editingPetVacina ? "Editar Vacina" : "Adicionar Vacina"}
+            open={isModalVisible}
+            onOk={handleModalOk}
+            okText="Confirmar"
+            cancelText="Cancelar"
+            onCancel={() => setIsModalVisible(false)}
+            width={600}
+          >
+            <Form form={form} layout="vertical" className="mt-4">
+              <Form.Item
+                label="Vacina"
+                className="w-3/6"
+                name="vaccineId"
+                rules={[
+                  { required: true, message: "Por favor, selecione a vacina!" },
+                ]}
+              >
+                <Select
+                  placeholder="Selecione a Vacina"
+                  defaultValue={undefined}
+                >
+                  {vacinas.map((vacina) => (
+                    <Option key={vacina.id} value={vacina.id}>
+                      {vacina.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item
+                label="Data da aplicação"
+                name="vaccinationDate"
+                className="w-3/6"
+                rules={[
+                  {
+                    required: true,
+                    message: "Por favor, insira a data de aplicação!",
                   },
-                },
-              ]}
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                style={{ width: "100%" }}
-                placeholder="Selecione uma data"
-                disabledDate={(current) =>
-                  current && current > dayjs().endOf("day")
-                }
-              />
-            </Form.Item>
-            <Form.Item
-              label="Código da dose/lote"
-              name="batchDose"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, insira o código da dose/lote!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          </Form>
-        </Modal>
-      </div>
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      if (value.isAfter(dayjs())) {
+                        return Promise.reject("A data não pode ser no futuro!");
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
+              >
+                <DatePicker
+                  format="DD/MM/YYYY"
+                  style={{ width: "100%" }}
+                  placeholder="Selecione uma data"
+                  disabledDate={(current) =>
+                    current && current > dayjs().endOf("day")
+                  }
+                />
+              </Form.Item>
+              <Form.Item
+                label="Código da dose/lote"
+                name="batchDose"
+                rules={[
+                  {
+                    required: true,
+                    message: "Por favor, insira o código da dose/lote!",
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+            </Form>
+          </Modal>
+        </div>
       </div>
     </AppLayout>
   );

@@ -10,7 +10,6 @@ import {
   Space,
   Tag,
   InputNumber,
-  Layout,
 } from "antd";
 import AppLayout from "../../components/Layout";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
@@ -28,12 +27,9 @@ import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import PetLayout from "../../components/PetLayout";
 import PetCard from "../../components/PetCard";
-const { Header, Sider, Content } = Layout;
 
 export default function PetVermifugo() {
   const [vermifugos, setVermifugos] = useState([]);
-    const [pet, setPet] = useState([]);
-  
   const { petId } = useParams();
 
   const [loading, setLoading] = useState(false);
@@ -41,8 +37,6 @@ export default function PetVermifugo() {
   const [editingVermifugo, setEditingVermifugo] = useState(null);
   const [form] = Form.useForm();
   const vermifugoCollectionRef = collection(db, "vermifugo");
-  const petCollectionRef = collection(db, "pet");
-  const usuarioCollectionRef = collection(db, "usuario");
 
   const vermifugoOptions = [
     { value: "Antiparasitário", label: "Antiparasitário" },
@@ -57,34 +51,6 @@ export default function PetVermifugo() {
     loadVermifugo();
   }, []);
 
-  const loadPet = async () => {
-    setLoading(true);
-    try {
-      const docRef = doc(petCollectionRef, petId);
-      const data = await getDoc(docRef);
-      setPet({ ...data.data(), id: data.id });
-    } catch (error) {
-      message.error("Erro ao carregar pet");
-      console.log(error);
-    }
-  };
-
-    const loadUsuarios = async () => {
-      try {
-        const q = query(
-          usuarioCollectionRef,
-          where("isActive", "==", true),
-          where("role", "==", "client")
-        );
-        const usuarioData = await getDocs(q);
-        setUsuarios(
-          usuarioData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        );
-      } catch (error) {
-        message.error("Erro ao carregar clientes");
-      }
-    };
-  
   const loadVermifugo = async () => {
     setLoading(true);
     try {
@@ -97,11 +63,6 @@ export default function PetVermifugo() {
       setLoading(false);
     }
   };
-    const getOwnerName = (ownerId) => {
-    const owner = usuarios.find((u) => u.id === ownerId);
-    return owner ? owner.name : "Dono não encontrado";
-  };
-
 
   const handleAddVermifugo = () => {
     setEditingVermifugo(null);
@@ -125,35 +86,36 @@ export default function PetVermifugo() {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const formattedValues = {
+        ...values,
+        isActive: true,
+        applicationDate: values.applicationDate
+          ? values.applicationDate.format("YYYY-MM-DD")
+          : null,
+        isActive: true,
+        petId: petId,
+      };
       if (editingVermifugo) {
+        const vermifugoDoc = doc(vermifugoCollectionRef, editingVermifugo.id)
         const updatedData = vermifugos.map((vermifugo) =>
           vermifugo.id === editingVermifugo.id
             ? { ...vermifugo, ...values }
             : vermifugo
         );
         setVermifugos(updatedData);
+        await updateDoc(vermifugoDoc, formattedValues)
         message.success("Vermífugação atualizada com sucesso!");
       } else {
         const docRef = await addDoc(vermifugoCollectionRef, {
-          ...values,
-          applicationDate: values.applicationDate
-            ? values.applicationDate.format("YYYY-MM-DD")
-            : null,
+          ...formattedValues,
           createdAt: new Date().toISOString().split("T")[0],
-          isActive: true,
-          petId: petId,
         });
         setVermifugos([
           ...vermifugos,
           {
-            ...values,
+            ...formattedValues,
             id: docRef.id,
-            applicationDate: values.applicationDate
-              ? values.applicationDate.format("YYYY-MM-DD")
-              : null,
             createdAt: new Date().toISOString().split("T")[0],
-            isActive: true,
-            petId: petId,
           },
         ]);
         message.success("Vermifugação adicionada com sucesso!");
@@ -300,7 +262,7 @@ export default function PetVermifugo() {
     <AppLayout>
       <PetLayout petId={petId} />
       <div className="flex gap-5 pt-6">
-        <PetCard/>
+        <PetCard />
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>

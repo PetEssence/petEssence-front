@@ -163,6 +163,39 @@ export default function PetMoreInfo() {
 
       const petDoc = doc(petCollectionRef, petId);
       await updateDoc(petDoc, formattedValues);
+
+      const oldOwners = pet.owner || [];
+      const newOwners = formattedValues.owner || [];
+
+      const addedOwners = newOwners.filter((id) => !oldOwners.includes(id));
+      const removedOwners = oldOwners.filter((id) => !newOwners.includes(id));
+
+      for (const ownerId of addedOwners) {
+        const ownerRef = doc(usuarioCollectionRef, ownerId);
+        const ownerSnap = await getDoc(ownerRef);
+
+        if (ownerSnap.exists()) {
+          const pets = ownerSnap.data().petsId || [];
+          const updatedPets = pets.includes(petDoc.id)
+            ? pets
+            : [...pets, petDoc.id];
+
+          await updateDoc(ownerRef, { petsId: updatedPets });
+        }
+      }
+
+      for (const ownerId of removedOwners) {
+        const ownerRef = doc(usuarioCollectionRef, ownerId);
+        const ownerSnap = await getDoc(ownerRef);
+
+        if (ownerSnap.exists()) {
+          const pets = ownerSnap.data().petsId || [];
+          const updatedPets = pets.filter((id) => id !== petDoc.id);
+
+          await updateDoc(ownerRef, { petsId: updatedPets });
+        }
+      }
+      setPet(formattedValues)
       message.success("Pet atualizado com sucesso!");
       setSavingLoading(false);
     } catch (error) {
@@ -247,7 +280,7 @@ export default function PetMoreInfo() {
   };
   return (
     <AppLayout>
-      <PetLayout petId={pet.id}/>
+      <PetLayout petId={pet.id} />
       <div className="space-y-6 flex items-center justify-center w-full">
         <Form
           form={form}

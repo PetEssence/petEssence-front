@@ -17,6 +17,9 @@ import AppLayout from "../../components/Layout";
 import {
   collection,
   getDocs,
+  getDoc,
+  doc,
+  updateDoc,
   addDoc,
   where,
   query,
@@ -151,6 +154,20 @@ export default function Pet() {
         isActive: true,
       });
 
+      for (const ownerId of formattedValues.owner) {
+        const ownerDocRef = doc(usuarioCollectionRef, ownerId);
+        const ownerSnap = await getDoc(ownerDocRef);
+
+        if (ownerSnap.exists()) {
+          const existingPets = ownerSnap.data().petsId || [];
+
+          const updatedPets = existingPets.includes(docRef.id)
+            ? existingPets
+            : [...existingPets, docRef.id];
+
+          await updateDoc(ownerDocRef, { petsId: updatedPets });
+        }
+      }
       setPets([
         ...pets,
         {
@@ -366,8 +383,7 @@ export default function Pet() {
                     { value: "male", label: "Macho" },
                     { value: "other", label: "Outro" },
                   ]}
-                >
-                </Select>
+                ></Select>
               </Form.Item>
               <Form.Item
                 label="Data de Nascimento"
@@ -410,7 +426,7 @@ export default function Pet() {
               >
                 <Select
                   placeholder="Selecione a espécie"
-                  defaultValue={undefined}
+                  initialvalues={undefined}
                 >
                   {especies.map((especie) => (
                     <Option key={especie.id} value={especie.id}>

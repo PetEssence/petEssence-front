@@ -7,11 +7,9 @@ import {
   getDocs,
   getDoc,
   doc,
-  where,
-  query,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export default function PetCard() {
   const [pet, setPet] = useState([]);
@@ -44,12 +42,7 @@ export default function PetCard() {
 
   const loadUsuarios = async () => {
     try {
-      const q = query(
-        usuarioCollectionRef,
-        where("isActive", "==", true),
-        where("role", "==", "client")
-      );
-      const usuarioData = await getDocs(q);
+      const usuarioData = await getDocs(usuarioCollectionRef);
       setUsuarios(
         usuarioData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
       );

@@ -38,9 +38,7 @@ export default function Raca() {
     setLoading(true);
     try {
       const racaData = await getDocs(racaCollectionRef);
-      setRaca(
-        racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-      );
+      setRaca(racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
       message.error("Erro ao carregar raças");
     } finally {
@@ -63,25 +61,29 @@ export default function Raca() {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const formattedValues = {
+        ...values,
+        isActive: true,
+      };
       if (editingRaca) {
+        const racaDoc = doc(racaCollectionRef, editingRaca.id);
         const updatedRaca = raca.map((raca) =>
           raca.id === editingRaca.id ? { ...raca, ...values } : raca
         );
         setRaca(updatedRaca);
+        await updateDoc(racaDoc, formattedValues);
         message.success("Raça atualizada com sucesso!");
       } else {
         const docRef = await addDoc(racaCollectionRef, {
-          name: values.name,
+          ...formattedValues,
           createdAt: new Date().toISOString().split("T")[0],
-          isActive: true,
         });
         setRaca([
           ...raca,
           {
             id: docRef.id,
-            name: values.name,
+            ...formattedValues,
             createdAt: new Date().toISOString().split("T")[0],
-            isActive: true,
           },
         ]);
         message.success("Raça adicionada com sucesso!");
@@ -102,7 +104,9 @@ export default function Raca() {
       okText: "Confirmar",
       okType: "primary",
       cancelText: "Cancelar",
-      okButtonProps: { className: "!bg-primaryGreen !hover:bg-primaryGreenHouver"},
+      okButtonProps: {
+        className: "!bg-primaryGreen !hover:bg-primaryGreenHouver",
+      },
       onOk: async () => {
         try {
           const racaDoc = doc(racaCollectionRef, racaId);
@@ -167,9 +171,7 @@ export default function Raca() {
           />
           <Button
             type="text"
-            onClick={() =>
-              handleActiveStatus(record.id, record.isActive)
-            }
+            onClick={() => handleActiveStatus(record.id, record.isActive)}
           >
             {record.isActive == true ? "Desativar" : "Ativar"}
           </Button>

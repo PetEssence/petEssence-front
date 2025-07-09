@@ -63,25 +63,29 @@ export default function Especie() {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const formattedValues = {
+        ...values,
+        isActive: true,
+      };
       if (editingEspecie) {
+        const especieDoc = doc(especieCollectionRef, editingEspecie.id);
         const updatedEspecies = especie.map((especie) =>
           especie.id === editingEspecie.id ? { ...especie, ...values } : especie
         );
         setEspecie(updatedEspecies);
+        await updateDoc(especieDoc, formattedValues);
         message.success("Espécie atualizada com sucesso!");
       } else {
         const docRef = await addDoc(especieCollectionRef, {
-          name: values.name,
+          ...formattedValues,
           createdAt: new Date().toISOString().split("T")[0],
-          isActive: true,
         });
         setEspecie([
           ...especie,
           {
             id: docRef.id,
-            name: values.name,
+            ...formattedValues,
             createdAt: new Date().toISOString().split("T")[0],
-            isActive: true,
           },
         ]);
         message.success("Espécie adicionada com sucesso!");
@@ -102,7 +106,9 @@ export default function Especie() {
       okText: "Confirmar",
       okType: "primary",
       cancelText: "Cancelar",
-      okButtonProps: { className: "!bg-primaryGreen !hover:bg-primaryGreenHouver" },
+      okButtonProps: {
+        className: "!bg-primaryGreen !hover:bg-primaryGreenHouver",
+      },
       onOk: async () => {
         try {
           const especieDoc = doc(especieCollectionRef, especieId);

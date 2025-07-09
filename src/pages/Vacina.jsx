@@ -69,29 +69,29 @@ export default function Vacina() {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const formattedValues = {
+        ...values,
+        isActive: true,
+      };
       if (editingVacina) {
+        const vacinaDoc = doc(vacinaCollectionRef, editingVacina.id);
         const updatedVacina = vacina.map((vacina) =>
           vacina.id === editingVacina.id ? { ...vacina, ...values } : vacina
         );
         setVacina(updatedVacina);
+        await updateDoc(vacinaDoc, formattedValues);
         message.success("Vacina atualizada com sucesso!");
       } else {
         const docRef = await addDoc(vacinaCollectionRef, {
-          name: values.name,
-          targetDisease: values.targetDisease,
-          reaplicationPeriod: values.reaplicationPeriod,
+          ...formattedValues,
           createdAt: new Date().toISOString().split("T")[0],
-          isActive: true,
         });
         setVacina([
           ...vacina,
           {
             id: docRef.id,
-            name: values.name,
-            targetDisease: values.targetDisease,
-            reaplicationPeriod: values.reaplicationPeriod,
+            ...formattedValues,
             createdAt: new Date().toISOString().split("T")[0],
-            isActive: true,
           },
         ]);
         message.success("Vacina adicionada com sucesso!");
@@ -175,9 +175,7 @@ export default function Vacina() {
         return (
           <div className="flex items-center space-x-3">
             <div>
-              <div className="text-gray-500 text-sm">
-                {option.label}
-              </div>
+              <div className="text-gray-500 text-sm">{option.label}</div>
             </div>
           </div>
         );
