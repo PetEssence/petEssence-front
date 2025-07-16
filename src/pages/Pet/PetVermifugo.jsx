@@ -92,7 +92,6 @@ export default function PetVermifugo() {
         applicationDate: values.applicationDate
           ? values.applicationDate.format("YYYY-MM-DD")
           : null,
-        isActive: true,
         petId: petId,
       };
       if (editingVermifugo) {
