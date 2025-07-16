@@ -195,7 +195,7 @@ export default function PetMoreInfo() {
           await updateDoc(ownerRef, { petsId: updatedPets });
         }
       }
-      setPet(formattedValues)
+      setPet({...formattedValues, id:petDoc.id})
       message.success("Pet atualizado com sucesso!");
       setSavingLoading(false);
     } catch (error) {
