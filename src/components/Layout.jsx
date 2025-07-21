@@ -1,24 +1,41 @@
-import { Layout, Menu, Avatar, Dropdown, theme } from "antd";
+import {
+  Menu,
+  Layout,
+  Avatar,
+  Dropdown,
+  Grid,
+} from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
   TagOutlined,
   AppstoreOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import logoDark from "../assets/logo_dark.png";
+import logoLight from "../assets/logo-light.png";
 import { PawPrintIcon, SyringeIcon } from "@phosphor-icons/react";
-const { Header, Sider, Content } = Layout;
+import { useState, useEffect } from "react";
 
+const { Header, Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
 
 export default function AppLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
+  const screens = useBreakpoint();
+
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!screens.lg) setCollapsed(true);
+    else setCollapsed(false);
+  }, [screens]);
+
+  const toggleCollapsed = () => setCollapsed(!collapsed);
 
   const menuItems = [
     {
@@ -35,19 +52,20 @@ export default function AppLayout({ children }) {
     },
     {
       key: "/especie",
-      label: "Espécies",
       icon: <AppstoreOutlined />,
+      label: "Espécies",
       onClick: () => navigate("/especie"),
     },
-        {
+    {
       key: "/pet",
+      icon: <PawPrintIcon size={20} />,
       label: "Pets",
-      icon: <PawPrintIcon />,
       onClick: () => navigate("/pet"),
-    },        {
+    },
+    {
       key: "/vacina",
+      icon: <SyringeIcon size={20} />,
       label: "Vacinas",
-      icon: <SyringeIcon />,
       onClick: () => navigate("/vacina"),
     },
   ];
@@ -61,40 +79,95 @@ export default function AppLayout({ children }) {
     },
   ];
 
+  const siderWidth = collapsed ? 80 : 250;
+
   return (
     <Layout className="min-h-screen">
       <Sider
-        className="shadow-md pt-4"
-      > 
-        <div className="flex flex-col justify-between h-screen items-center fixed min-h-screen px-4 ">
-          <Menu
-            mode="inline"
-            selectedKeys={[location.pathname]}
-            items={menuItems}
-          />
+        collapsible
+        collapsed={collapsed}
+        trigger={null}
+        width={250}
+        className="fixed top-0 left-0 h-screen z-50 bg-primaryGreen"
+        style={{ padding: 8 }}
+      >
+        <div className="flex flex-col h-full justify-between rounded-lg bg-primaryGreen">
+          <div>
+            <div className="flex items-center justify-between px-4 py-4">
+              {!collapsed && (
+                <span className="text-white text-xl font-bold">
+                  PET<span className="font-normal">ESSENCE</span>
+                </span>
+              )}
+              <button
+                onClick={toggleCollapsed}
+                className="text-white text-lg hover:bg-primaryGreenHouver rounded p-1"
+              >
+                {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              </button>
+            </div>
+
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={[location.pathname]}
+              className="bg-primaryGreen text-white font-bold"
+              items={menuItems}
+            />
+          </div>
+
+          <div
+            className="p-4 hover:bg-primaryGreenHouver cursor-pointer flex items-center space-x-3 text-white rounded-lg font-bold"
+            onClick={logout}
+          >
+            <LogoutOutlined />
+            {!collapsed && <span>Sair</span>}
+          </div>
         </div>
       </Sider>
 
-      <Layout>
-        <Header className="shadow-sm flex items-center justify-between px-8 bg-primaryGreen">
-          <img src={logoDark} className="w-44"></img>
-          <Dropdown
-            menu={{ items: userMenuItems }}
-            placement="bottomRight"
-            arrow
-          >
+      <Layout
+        style={{
+          marginLeft: siderWidth,
+          transition: "margin-left 0.3s ease",
+        }}
+      >
+
+        <Header
+          className="flex items-center justify-between px-8 z-40 bg-white bg-opacity-80 backdrop-blur-md shadow-md"
+          style={{
+            position: "absolute",
+            top: 16,
+            left: siderWidth + 16,
+            width: `calc(100% - ${siderWidth + 32}px)`,
+            height: 72,
+            borderRadius: 12,
+            transition: "left 0.3s ease, width 0.3s ease",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <img src={logoLight} className="w-44" alt="logo" />
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
             <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded">
               <Avatar icon={<UserOutlined />} />
-              <span className="hidden sm:inline text-white">
+              <span className="hidden sm:inline text-gray-700">
                 {user?.displayName || user?.email}
               </span>
             </div>
           </Dropdown>
         </Header>
 
-        <Content className="bg-white rounded-lg shadow-sm p-8">
+        <Content
+          style={{
+            marginTop: 104,
+            padding: "24px",
+          }}
+          className="bg-white rounded-lg shadow-sm m-4"
+        >
           {children}
         </Content>
+
       </Layout>
     </Layout>
   );
