@@ -12,7 +12,12 @@ import {
   Avatar,
   Upload,
 } from "antd";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  ClearOutlined,
+  FilterOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import AppLayout from "../../components/Layout";
 import {
   collection,
@@ -39,6 +44,9 @@ export default function Pet() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [searchRaca, setSearchRaca] = useState(null);
+  const [searchEspecie, setSearchEspecie] = useState(null);
+  const [searchUsuario, setSearchUsuario] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [file, setFile] = useState(null);
@@ -48,6 +56,7 @@ export default function Pet() {
   const especieCollectionRef = collection(db, "especie");
   const racaCollectionRef = collection(db, "raca");
   const usuarioCollectionRef = collection(db, "usuario");
+  const isFilterActive = searchText || searchRaca || searchEspecie || searchUsuario;
 
   const imagekit = new ImageKit({
     urlEndpoint: "https://ik.imagekit.io/petEssence",
@@ -225,9 +234,21 @@ export default function Pet() {
     });
   };
 
-  const filteredPet = pets.filter((pet) =>
-    pet.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const filteredPet = pets.filter((pet) => {
+    const matchName = pet.name.toLowerCase().includes(searchText.toLowerCase());
+    const matchRaca = !searchRaca || pet.breed === searchRaca;
+    const matchEspecie = !searchEspecie || pet.specie === searchEspecie;
+    const matchTutor = !searchUsuario || pet.owner.includes(searchUsuario);
+
+    return matchName && matchRaca && matchEspecie && matchTutor;
+  });
+
+  const handleClearFilters = () => {
+    setSearchText("");
+    setSearchRaca(null);
+    setSearchEspecie(null);
+    setSearchUsuario(null)
+  };
 
   const getSpecieName = (specieId) => {
     const specie = especies.find((s) => s.id === specieId);
@@ -257,7 +278,7 @@ export default function Pet() {
         </div>
 
         <Card>
-          <div className="mb-4">
+          <div className="mb-4 flex gap-5">
             <Input
               placeholder="Buscar Pet..."
               prefix={<SearchOutlined />}
@@ -265,6 +286,57 @@ export default function Pet() {
               onChange={(e) => setSearchText(e.target.value)}
               className="max-w-sm"
             />
+            <Select
+              placeholder="Filtre por raça"
+              className="w-52"
+              allowClear={true}
+              value={searchRaca}
+              prefix={<FilterOutlined />}
+              onChange={(e) => setSearchRaca(e)}
+            >
+              {racas.map((raca) => (
+                <Option key={raca.id} value={raca.id}>
+                  {raca.name}
+                </Option>
+              ))}
+            </Select>
+            <Select
+              placeholder="Filtre por espécie"
+              className="w-52"
+              allowClear={true}
+              value={searchEspecie}
+              prefix={<FilterOutlined />}
+              onChange={(e) => setSearchEspecie(e)}
+            >
+              {especies.map((e) => (
+                <Option key={e.id} value={e.id}>
+                  {e.name}
+                </Option>
+              ))}
+            </Select>
+            <Select
+              placeholder="Filtre por tutor"
+              className="w-52"
+              allowClear={true}
+              value={searchUsuario}
+              prefix={<FilterOutlined />}
+              onChange={(e) => setSearchUsuario(e)}
+            >
+              {usuarios.map((u) => (
+                <Option key={u.id} value={u.id}>
+                  {u.name}
+                </Option>
+              ))}
+            </Select>
+          {   isFilterActive &&
+            <Button
+              icon={<ClearOutlined />}
+              onClick={() => handleClearFilters()}
+              type="primary"
+            >
+              Limpar Filtros
+            </Button>
+            }
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -307,7 +379,6 @@ export default function Pet() {
                         </div>
                         <div className="text-xs text-gray-400">
                           Raça: {getBreedName(pet.breed)}
-                          {getSpecieName(pet.specie)}
                         </div>
                         <div className="text-xs text-gray-400">
                           Espécie: {getSpecieName(pet.specie)}
@@ -426,7 +497,6 @@ export default function Pet() {
               >
                 <Select
                   placeholder="Selecione a espécie"
-                  initialvalues={undefined}
                 >
                   {especies.map((especie) => (
                     <Option key={especie.id} value={especie.id}>
