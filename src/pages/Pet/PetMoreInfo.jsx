@@ -135,7 +135,7 @@ export default function PetMoreInfo() {
       const values = await form.validateFields();
       let photoUrl = values.photo || null;
 
-      if (file) {
+      if (file && !hasUploadedFile) {
         try {
           const resized = await resizeImage(file, 300, 300);
           const base64 = await convertToBase64(resized);
@@ -436,7 +436,7 @@ export default function PetMoreInfo() {
             <div className="flex justify-between">
               <Button
                 danger
-                onClick={() => handleActiveStatus(pet.id, pet.isActive)}
+                onClick={() => handleActiveStatus(pet.id, isActive)}
               >
                 {isActive ? "Desativar" : "Ativar"}
               </Button>
