@@ -1,10 +1,4 @@
-import {
-  Menu,
-  Layout,
-  Avatar,
-  Dropdown,
-  Grid,
-} from "antd";
+import { Menu, Layout, Avatar, Dropdown, Grid } from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
@@ -28,13 +22,24 @@ export default function AppLayout({ children }) {
   const location = useLocation();
   const screens = useBreakpoint();
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    const saved = localStorage.getItem("sidebarCollapsed");
+    if (saved !== null) {
+      return JSON.parse(saved);
+    }
+    return !screens.lg; 
+  });
 
   useEffect(() => {
-    if (!screens.lg) setCollapsed(true);
-    else setCollapsed(false);
-  }, [screens]);
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed));
+  }, [collapsed]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebarCollapsed");
+    if (!screens.lg && saved === null) {
+      setCollapsed(true);
+    }
+  }, [screens]);
   const toggleCollapsed = () => setCollapsed(!collapsed);
 
   const menuItems = [
@@ -132,7 +137,6 @@ export default function AppLayout({ children }) {
           transition: "margin-left 0.3s ease",
         }}
       >
-
         <Header
           className="flex items-center justify-between px-8 z-40 bg-white bg-opacity-80 backdrop-blur-md shadow-md"
           style={{
@@ -148,7 +152,11 @@ export default function AppLayout({ children }) {
           }}
         >
           <img src={logoLight} className="w-44" alt="logo" />
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            placement="bottomRight"
+            arrow
+          >
             <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded">
               <Avatar icon={<UserOutlined />} />
               <span className="hidden sm:inline text-gray-700">
@@ -167,7 +175,6 @@ export default function AppLayout({ children }) {
         >
           {children}
         </Content>
-
       </Layout>
     </Layout>
   );
