@@ -5,6 +5,7 @@ import {
   TagOutlined,
   AppstoreOutlined,
   MenuFoldOutlined,
+  HomeOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -27,7 +28,7 @@ export default function AppLayout({ children }) {
     if (saved !== null) {
       return JSON.parse(saved);
     }
-    return !screens.lg; 
+    return !screens.lg;
   });
 
   useEffect(() => {
@@ -43,6 +44,12 @@ export default function AppLayout({ children }) {
   const toggleCollapsed = () => setCollapsed(!collapsed);
 
   const menuItems = [
+    {
+      key: "/dashboard",
+      icon: <HomeOutlined />,
+      label: "Dashboard",
+      onClick: () => navigate("/Dashboard"),
+    },
     {
       key: "/usuario",
       icon: <UserOutlined />,

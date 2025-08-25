@@ -11,7 +11,7 @@ import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
 import "./App.css";
 import Especie from "./pages/Especie";
-import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import Raca from "./pages/Raca";
 import Usuario from "./pages/Usuario";
 import Pet from "./pages/Pet/Pet";
@@ -80,10 +80,10 @@ export default function App() {
                 }
               />
               <Route
-                path="/home"
+                path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <Home />
+                    <Dashboard />
                   </ProtectedRoute>
                 }
               />
@@ -143,7 +143,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/" element={<Navigate to="/home" />} />
+              <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
         </Router>
