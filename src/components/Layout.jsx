@@ -48,7 +48,7 @@ export default function AppLayout({ children }) {
       key: "/dashboard",
       icon: <HomeOutlined />,
       label: "Dashboard",
-      onClick: () => navigate("/Dashboard"),
+      onClick: () => navigate("/dashboard"),
     },
     {
       key: "/usuario",
