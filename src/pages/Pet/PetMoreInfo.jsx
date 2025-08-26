@@ -195,7 +195,7 @@ export default function PetMoreInfo() {
           await updateDoc(ownerRef, { petsId: updatedPets });
         }
       }
-      setPet({...formattedValues, id:petDoc.id})
+      setPet({ ...formattedValues, id: petDoc.id });
       message.success("Pet atualizado com sucesso!");
       setSavingLoading(false);
     } catch (error) {
@@ -295,11 +295,13 @@ export default function PetMoreInfo() {
           >
             <div className="flex justify-center items-center flex-col gap-5">
               {file && (
-                <img
-                  src={hasUploadedFile ? file : URL.createObjectURL(file)}
-                  alt="preview"
-                  className="mt-2 object-cover rounded w-[300px] h-[300px]"
-                />
+                <div className="mt-2 w-[300px] h-[300px] rounded overflow-hidden">
+                  <img
+                    src={hasUploadedFile ? file : URL.createObjectURL(file)}
+                    alt="preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               )}
               <Upload
                 beforeUpload={(file) => {
