@@ -22,14 +22,12 @@ export default function Dashboard() {
   const [usuarios, setUsuarios] = useState([]);
   const [petVacinas, setPetVacinas] = useState([]);
   const [vermifugos, setVermifugos] = useState([]);
-  const [vacinas, setVacinas] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [petsBySpecie, setPetsBySpecie] = useState([]);
   const [appliedVaccines, setAppliedVaccines] = useState([]);
   const [usersByDate, setUsersByDate] = useState([]);
   const [petsByDate, setPetsByDate] = useState([]);
-  const [especies, setEspecies] = useState([]);
 
   const especieCollectionRef = collection(db, "especie");
   const petCollectionRef = collection(db, "pet");

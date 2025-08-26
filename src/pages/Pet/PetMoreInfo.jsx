@@ -21,7 +21,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import dayjs from "dayjs";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import PetLayout from "../../components/PetLayout";
 import ImageKit from "imagekit";
 
@@ -72,6 +72,8 @@ export default function PetMoreInfo() {
     } catch (error) {
       message.error("Erro ao carregar pet");
       console.log(error);
+    } finally {
+      setLoading(false)
     }
   };
 
