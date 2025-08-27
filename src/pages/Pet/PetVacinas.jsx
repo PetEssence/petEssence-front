@@ -183,7 +183,7 @@ export default function PetVacinas() {
       ),
     },
     {
-      title: "Data da aplicação",
+      title: "Data da Aplicação",
       dataIndex: "vaccinationDate",
       width: 800,
       key: "vaccinationDate",
@@ -284,6 +284,7 @@ export default function PetVacinas() {
             dataSource={petVacinas}
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: "Não há registros."}}
           />
           <Modal
             title={editingPetVacina ? "Editar Vacina" : "Adicionar Vacina"}

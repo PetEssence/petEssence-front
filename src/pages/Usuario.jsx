@@ -329,6 +329,7 @@ export default function Usuario() {
             dataSource={filteredUsuarios}
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: "Não há registros."}}
           />
         </Card>
         <Modal

@@ -329,7 +329,7 @@ export default function PetMoreInfo() {
 
           <div className="w-full flex gap-8 justify-between">
             <Form.Item
-              label="Gênero"
+              label="Sexo"
               name="genre"
               className="w-3/6"
               rules={[

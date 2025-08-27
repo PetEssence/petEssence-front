@@ -251,6 +251,7 @@ export default function Vacina() {
             dataSource={filteredVacinas}
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: "Não há registros."}}
           />
         </Card>
 
