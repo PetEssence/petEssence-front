@@ -216,6 +216,7 @@ export default function Especie() {
             dataSource={filteredEspecies}
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: "Não há registros."}}
           />
         </Card>
         <Modal

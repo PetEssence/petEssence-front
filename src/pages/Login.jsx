@@ -48,7 +48,7 @@ export default function LoginPage() {
       >
         <Input
           prefix={<MailOutlined />}
-          placeholder="seu@email.com"
+          placeholder="exemplo@email.com"
           size="large"
         />
       </Form.Item>
@@ -111,7 +111,7 @@ export default function LoginPage() {
       >
         <Input
           prefix={<MailOutlined />}
-          placeholder="seu@email.com"
+          placeholder="exemplo@email.com"
           size="large"
         />
       </Form.Item>
@@ -151,11 +151,13 @@ export default function LoginPage() {
       <Card className="shadow-lg">
         <img src={logoLight} className="w-2/3"/>
         {showLoginForm ? LoginForm() : RegisterForm()}
+        <div className="flex justify-center">
         <Button type="text" onClick={() => setShowLoginForm(!showLoginForm)}>
           {showLoginForm
             ? "Não tem uma conta? Cadastre-se"
             : "Tem uma conta? Conecte-se"}
         </Button>
+        </div>
       </Card>
     </div>
   );

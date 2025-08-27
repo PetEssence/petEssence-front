@@ -65,8 +65,18 @@ export default function PetCard() {
         alt="preview"
         className="mt-2 object-cover rounded w-[200px] h-[200px]"
       />
-      <p className="">Nome: {pet.name}</p>
-      <p>Tutores: {pet.owner?.map((o) => getOwnerName(o))}</p>
+      <div className=" flex gap-1">
+        <span className="font-bold">Nome: </span>
+        <p>{pet.name}</p>
+      </div>
+      <div className="flex flex-col gap-1 text-center">
+        <span className="font-bold">Tutores: </span>
+        <div>
+          {pet.owner?.map((o, index) => (
+            <p key={index}>{getOwnerName(o)}</p>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

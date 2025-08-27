@@ -340,7 +340,8 @@ export default function Pet() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredPet.map((pet) => (
+            {filteredPet.length > 0 ? (
+              filteredPet.map((pet) => (
               <Link to={`/${pet.id}`} key={pet.id}>
                 <Card
                   key={pet.id}
@@ -388,7 +389,12 @@ export default function Pet() {
                   />
                 </Card>
               </Link>
-            ))}
+            ))
+          ) : (
+            <div className="col-span-full text-center text-gray-300 py-8">
+              Não há registros.
+            </div>
+          )}
           </div>
         </Card>
 
@@ -439,15 +445,15 @@ export default function Pet() {
 
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
-                label="Gênero"
+                label="Sexo"
                 name="genre"
                 className="w-3/6"
                 rules={[
-                  { required: true, message: "Por favor, selecione o gênero!" },
+                  { required: true, message: "Por favor, selecione o sexo!" },
                 ]}
               >
                 <Select
-                  placeholder="Selecione o gênero"
+                  placeholder="Selecione o sexo"
                   defaultValue={undefined}
                   options={[
                     { value: "female", label: "Fêmea" },

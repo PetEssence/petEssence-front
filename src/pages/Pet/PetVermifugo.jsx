@@ -157,7 +157,7 @@ export default function PetVermifugo() {
 
   const columns = [
     {
-      title: "Data de aplicação",
+      title: "Data da Aplicação",
       dataIndex: "applicationDate",
       width: 800,
       key: "applicationDate",
@@ -205,7 +205,7 @@ export default function PetVermifugo() {
       ),
     },
     {
-      title: "Tipo do vermífugo",
+      title: "Tipo do Vermífugo",
       dataIndex: "vermifugeType",
       width: 800,
       key: "vermifugeType",
@@ -283,6 +283,7 @@ export default function PetVermifugo() {
             dataSource={vermifugos}
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: "Não há registros."}}
           />
           <Modal
             title={

@@ -212,6 +212,7 @@ export default function Raca() {
             dataSource={filteredRaças}
             rowKey="id"
             loading={loading}
+            locale={{ emptyText: "Não há registros."}}
           />
         </Card>
 
