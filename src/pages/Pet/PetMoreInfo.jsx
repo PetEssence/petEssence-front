@@ -38,7 +38,7 @@ export default function PetMoreInfo() {
   const [file, setFile] = useState(null);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [savingLoading, setSavingLoading] = useState(false);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   const petCollectionRef = collection(db, "pet");
   const especieCollectionRef = collection(db, "especie");
@@ -73,7 +73,7 @@ export default function PetMoreInfo() {
       message.error("Erro ao carregar pet");
       console.log(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -157,6 +157,7 @@ export default function PetMoreInfo() {
       }
       const formattedValues = {
         ...values,
+        isActive: isActive,
         birthDate: values.birthDate
           ? values.birthDate.format("YYYY-MM-DD")
           : null,
