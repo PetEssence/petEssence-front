@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Button,
   Input,
@@ -39,6 +39,9 @@ export default function PetMoreInfo() {
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [savingLoading, setSavingLoading] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [usingCamera, setUsingCamera] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const petCollectionRef = collection(db, "pet");
   const especieCollectionRef = collection(db, "especie");
@@ -281,6 +284,46 @@ export default function PetMoreInfo() {
       reader.readAsDataURL(blob);
     });
   };
+
+  useEffect(() => {
+    if (usingCamera && videoRef.current) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          videoRef.current.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error("Erro ao acessar câmera:", err);
+          setUsingCamera(false);
+        });
+    }
+  }, [usingCamera]);
+
+  const capturePhoto = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const context = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      const newFile = new File([blob], "photo.jpg", { type: "image/jpeg" });
+      setFile(newFile);
+      setHasUploadedFile(false);
+      stopCamera();
+    }, "image/jpeg");
+  };
+
+  const stopCamera = () => {
+    const stream = videoRef.current?.srcObject;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    setUsingCamera(false);
+  };
+
   return (
     <AppLayout>
       <PetLayout petId={pet.id} />
@@ -297,15 +340,16 @@ export default function PetMoreInfo() {
             className="flex justify-center items-center"
           >
             <div className="flex justify-center items-center flex-col gap-5">
-              {file && (
+              {file && !usingCamera && (
                 <div className="mt-2 w-[300px] h-[300px] rounded overflow-hidden">
                   <img
                     src={hasUploadedFile ? file : URL.createObjectURL(file)}
                     alt="preview"
-                    className="w-full h-full object-cover"
+                    className="w-[300px] h-[300px] object-cover rounded"
                   />
                 </div>
               )}
+
               <Upload
                 beforeUpload={(file) => {
                   setHasUploadedFile(false);
@@ -317,6 +361,31 @@ export default function PetMoreInfo() {
               >
                 <Button>Selecionar Imagem</Button>
               </Upload>
+              <p>ou</p>
+              {!usingCamera && (
+                <Button onClick={() => setUsingCamera(true)}>
+                  Usar câmera
+                </Button>
+              )}
+              {usingCamera && (
+                <div className="flex flex-col items-center gap-3">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="rounded w-[300px] h-[300px] bg-black object-cover overflow-hidden"
+                  ></video>
+                  <div className="flex gap-3">
+                    <Button type="primary" onClick={capturePhoto}>
+                      Capturar Foto
+                    </Button>
+                    <Button danger onClick={stopCamera}>
+                      Cancelar
+                    </Button>
+                  </div>
+                  <canvas ref={canvasRef} className="hidden"></canvas>
+                </div>
+              )}
             </div>
           </Form.Item>
 
