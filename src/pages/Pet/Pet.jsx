@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   Button,
@@ -51,6 +51,9 @@ export default function Pet() {
   const [form] = Form.useForm();
   const [file, setFile] = useState(null);
   const [savingLoading, setSavingLoading] = useState(false);
+  const [usingCamera, setUsingCamera] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const petCollectionRef = collection(db, "pet");
   const especieCollectionRef = collection(db, "especie");
@@ -247,7 +250,7 @@ export default function Pet() {
     setSearchText("");
     setSearchRaca(null);
     setSearchEspecie(null);
-    setSearchUsuario(null)
+    setSearchUsuario(null);
   };
 
   const getSpecieName = (specieId) => {
@@ -263,6 +266,44 @@ export default function Pet() {
   const getOwnerName = (ownerId) => {
     const owner = usuarios.find((u) => u.id === ownerId);
     return owner ? owner.name : "Dono não encontrado";
+  };
+
+  useEffect(() => {
+    if (usingCamera && videoRef.current) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          videoRef.current.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error("Erro ao acessar câmera:", err);
+          setUsingCamera(false);
+        });
+    }
+  }, [usingCamera]);
+
+  const capturePhoto = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const context = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      const newFile = new File([blob], "photo.jpg", { type: "image/jpeg" });
+      setFile(newFile);
+      stopCamera();
+    }, "image/jpeg");
+  };
+
+  const stopCamera = () => {
+    const stream = videoRef.current?.srcObject;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    setUsingCamera(false);
   };
 
   return (
@@ -328,73 +369,73 @@ export default function Pet() {
                 </Option>
               ))}
             </Select>
-          {   isFilterActive &&
-            <Button
-              icon={<ClearOutlined />}
-              onClick={() => handleClearFilters()}
-              type="primary"
-            >
-              Limpar Filtros
-            </Button>
-            }
+            {isFilterActive && (
+              <Button
+                icon={<ClearOutlined />}
+                onClick={() => handleClearFilters()}
+                type="primary"
+              >
+                Limpar Filtros
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPet.length > 0 ? (
               filteredPet.map((pet) => (
-              <Link to={`/${pet.id}`} key={pet.id}>
-                <Card
-                  key={pet.id}
-                  hoverable
-                  className="w-full"
-                  cover={
-                    <Avatar
-                      shape="square"
-                      size="large"
-                      src={pet.photo}
-                      className="object-contain"
-                      style={{ minHeight: 200, maxHeight: 200 }}
+                <Link to={`/${pet.id}`} key={pet.id}>
+                  <Card
+                    key={pet.id}
+                    hoverable
+                    className="w-full"
+                    cover={
+                      <Avatar
+                        shape="square"
+                        size="large"
+                        src={pet.photo}
+                        className="object-contain"
+                        style={{ minHeight: 200, maxHeight: 200 }}
+                      />
+                    }
+                  >
+                    <Meta
+                      title={
+                        <div className="flex items-center justify-between">
+                          <span className="truncate">{pet.name}</span>
+                          {pet.isActive ? (
+                            <Tag color="green" size="small">
+                              Ativo
+                            </Tag>
+                          ) : (
+                            <Tag color="red" size="small">
+                              Inativo
+                            </Tag>
+                          )}
+                        </div>
+                      }
+                      description={
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500 truncate">
+                            Tutores:{" "}
+                            {pet.owner.map((id) => getOwnerName(id) + " - ")}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Raça: {getBreedName(pet.breed)}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Espécie: {getSpecieName(pet.specie)}
+                          </div>
+                        </div>
+                      }
                     />
-                  }
-                >
-                  <Meta
-                    title={
-                      <div className="flex items-center justify-between">
-                        <span className="truncate">{pet.name}</span>
-                        {pet.isActive ? (
-                          <Tag color="green" size="small">
-                            Ativo
-                          </Tag>
-                        ) : (
-                          <Tag color="red" size="small">
-                            Inativo
-                          </Tag>
-                        )}
-                      </div>
-                    }
-                    description={
-                      <div className="space-y-1">
-                        <div className="text-xs text-gray-500 truncate">
-                          Tutores:{" "}
-                          {pet.owner.map((id) => getOwnerName(id) + " - ")}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Raça: {getBreedName(pet.breed)}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Espécie: {getSpecieName(pet.specie)}
-                        </div>
-                      </div>
-                    }
-                  />
-                </Card>
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-full text-center text-gray-300 py-8">
-              Não há registros.
-            </div>
-          )}
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center text-gray-300 py-8">
+                Não há registros.
+              </div>
+            )}
           </div>
         </Card>
 
@@ -415,7 +456,7 @@ export default function Pet() {
               className="flex justify-center items-center"
             >
               <div className="flex justify-center items-center flex-col gap-5">
-                {file && (
+                {file && !usingCamera && (
                   <img
                     src={URL.createObjectURL(file)}
                     alt="preview"
@@ -432,6 +473,33 @@ export default function Pet() {
                 >
                   <Button>Selecionar Imagem</Button>
                 </Upload>
+                <p>ou</p>
+
+                {!usingCamera && (
+                  <Button onClick={() => setUsingCamera(true)}>
+                    Usar câmera
+                  </Button>
+                )}
+
+                {usingCamera && (
+                  <div className="flex flex-col items-center gap-3">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="rounded w-[300px] h-[300px] bg-black object-cover"
+                    ></video>
+                    <div className="flex gap-3">
+                      <Button type="primary" onClick={capturePhoto}>
+                        Capturar Foto
+                      </Button>
+                      <Button danger onClick={stopCamera}>
+                        Cancelar
+                      </Button>
+                    </div>
+                    <canvas ref={canvasRef} className="hidden"></canvas>
+                  </div>
+                )}
               </div>
             </Form.Item>
 
@@ -501,9 +569,7 @@ export default function Pet() {
                   },
                 ]}
               >
-                <Select
-                  placeholder="Selecione a espécie"
-                >
+                <Select placeholder="Selecione a espécie">
                   {especies.map((especie) => (
                     <Option key={especie.id} value={especie.id}>
                       {especie.name}
