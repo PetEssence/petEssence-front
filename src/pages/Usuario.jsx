@@ -253,11 +253,9 @@ export default function Usuario() {
       key: "role",
       render: (_, record) => (
         <Space>
-          {record.role === "admin" ? (
-            <Tag color="blue-inverse">Administrador</Tag>
-          ) : (
-            <Tag color="gold-inverse">Cliente</Tag>
-          )}
+          {record.role === "employee" && <Tag color="blue-inverse">Administrador</Tag>}
+          {record.role === "client" && <Tag color="gold-inverse">Cliente</Tag>}
+          {record.role === "vet" && <Tag color="green-inverse">Veterinário</Tag>}
         </Space>
       ),
     },
@@ -329,7 +327,7 @@ export default function Usuario() {
             dataSource={filteredUsuarios}
             rowKey="id"
             loading={loading}
-            locale={{ emptyText: "Não há registros."}}
+            locale={{ emptyText: "Não há registros." }}
           />
         </Card>
         <Modal
@@ -548,8 +546,9 @@ export default function Usuario() {
                 placeholder="Selecione o cargo"
                 defaultValue={undefined}
                 options={[
-                  { value: "admin", label: "Administrador" },
+                  { value: "employee", label: "Funcionário" },
                   { value: "client", label: "Cliente" },
+                  { value: "vet", label: "Veterinário" },
                 ]}
               />
             </Form.Item>
