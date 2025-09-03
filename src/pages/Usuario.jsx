@@ -36,6 +36,7 @@ export default function Usuario() {
   const [editingData, setEditingUsuario] = useState(null);
   const [form] = Form.useForm();
   const usuarioCollectionRef = collection(db, "usuario");
+  const userRole = Form.useWatch('role', form);
 
   useEffect(() => {
     loadUsuarios();
@@ -253,9 +254,13 @@ export default function Usuario() {
       key: "role",
       render: (_, record) => (
         <Space>
-          {record.role === "employee" && <Tag color="blue-inverse">Administrador</Tag>}
+          {record.role === "employee" && (
+            <Tag color="blue-inverse">Funcionário</Tag>
+          )}
           {record.role === "client" && <Tag color="gold-inverse">Cliente</Tag>}
-          {record.role === "vet" && <Tag color="green-inverse">Veterinário</Tag>}
+          {record.role === "vet" && (
+            <Tag color="green-inverse">Veterinário</Tag>
+          )}
         </Space>
       ),
     },
@@ -552,6 +557,37 @@ export default function Usuario() {
                 ]}
               />
             </Form.Item>
+
+            {userRole === "vet" && (
+              <Form.Item
+                label="CRMV"
+                name="crmv"
+               rules={[
+                { required: true, message: "Por favor, insira o CRMV!" },
+                {
+                  validator: async (_, value) => {
+                    if (!value || value.trim() === "") return Promise.resolve();
+                    const q = query(
+                      usuarioCollectionRef,
+                      where("crmv", "==", value)
+                    );
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                      const existingDoc = querySnapshot.docs[0];
+                      if (editingData && existingDoc.id === editingData.id) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject("Este CRMV já está cadastrado!");
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+              >
+                <Input />
+              </Form.Item>
+            )}
           </Form>
         </Modal>
       </div>
