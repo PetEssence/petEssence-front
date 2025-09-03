@@ -531,7 +531,8 @@ export default function Pet() {
                 ></Select>
               </Form.Item>
               <Form.Item
-                label="Data de Nascimento"
+                label="Data de nascimento ou estimativa"
+                tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
                 name="birthDate"
                 className="w-3/6"
                 rules={[
