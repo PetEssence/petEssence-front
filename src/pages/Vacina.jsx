@@ -71,7 +71,6 @@ export default function Vacina() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        isActive: true,
       };
       if (editingVacina) {
         const vacinaDoc = doc(vacinaCollectionRef, editingVacina.id);
@@ -103,74 +102,45 @@ export default function Vacina() {
     }
   };
 
-  const handleActiveStatus = (vacinaId, activeStatus) => {
-    Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
-      content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
-      } esta vacina?`,
-      okText: "Confirmar",
-      okType: "primary",
-      cancelText: "Cancelar",
-      okButtonProps: {
-        className: "!bg-primaryGreen !hover:bg-primaryGreenHouver",
-      },
-      onOk: async () => {
-        try {
-          const vacinaDoc = doc(vacinaCollectionRef, vacinaId);
-          const newStatus = { isActive: !activeStatus };
-          await updateDoc(vacinaDoc, newStatus);
-          const updatedVacina = vacina.map((item) =>
-            item.id === vacinaId ? { ...item, isActive: !activeStatus } : item
-          );
-          setVacina(updatedVacina);
-          message.success("Vacina atualizada com sucesso!");
-        } catch (error) {
-          message.error("Erro ao excluir Vacina");
-        }
-      },
-    });
-  };
-
   const filteredVacinas = vacina.filter((vacina) =>
-    vacina.name.toLowerCase().includes(searchText.toLowerCase())
+    vacina.nome.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
     {
       title: "Nome",
-      dataIndex: "name",
+      dataIndex: "nome",
       width: 800,
-      key: "name",
+      key: "nome",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.name}</div>
+            <div className="text-gray-500 text-sm">{record.nome}</div>
           </div>
         </div>
       ),
     },
     {
       title: "Doença alvo",
-      dataIndex: "targetDisease",
+      dataIndex: "doencaAlvo",
       width: 800,
-      key: "targetDisease",
+      key: "doencaAlvo",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.targetDisease}</div>
+            <div className="text-gray-500 text-sm">{record.doencaAlvo}</div>
           </div>
         </div>
       ),
     },
     {
       title: "Período de reaplicação",
-      dataIndex: "reaplicationPeriod",
+      dataIndex: "periodoReaplicacao",
       width: 800,
-      key: "reaplicationPeriod",
+      key: "periodoReaplicacao",
       render: (_, record) => {
         const option = optionsSelectReaplicationPeriod.find(
-          (opt) => opt.value === record.reaplicationPeriod
+          (opt) => opt.value === record.periodoReaplicacao
         );
         return (
           <div className="flex items-center space-x-3">
@@ -180,21 +150,6 @@ export default function Vacina() {
           </div>
         );
       },
-    },
-    {
-      title: "Status",
-      key: "activeStatus",
-      align: "center",
-      width: 50,
-      render: (_, record) => (
-        <Space>
-          {record.isActive == true ? (
-            <Tag color="green">Ativo</Tag>
-          ) : (
-            <Tag color="red">Inativo</Tag>
-          )}
-        </Space>
-      ),
     },
     {
       title: "Ações",
@@ -208,12 +163,6 @@ export default function Vacina() {
             icon={<EditOutlined />}
             onClick={() => handleEditVacina(record)}
           />
-          <Button
-            type="text"
-            onClick={() => handleActiveStatus(record.id, record.isActive)}
-          >
-            {record.isActive == true ? "Desativar" : "Ativar"}
-          </Button>
         </Space>
       ),
     },
@@ -267,7 +216,7 @@ export default function Vacina() {
           <Form form={form} layout="vertical" className="mt-4">
             <Form.Item
               label="Nome"
-              name="name"
+              name="nome"
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />
@@ -275,15 +224,15 @@ export default function Vacina() {
 
             <Form.Item
               label="Doença alvo"
-              name="targetDisease"
-              rules={[{ required: true, message: "Por favor, insira o nome!" }]}
+              name="doencaAlvo"
+              rules={[{ required: true, message: "Por favor, insira a doença alvo!" }]}
             >
               <Input />
             </Form.Item>
 
             <Form.Item
               label="Período de reaplicação"
-              name="reaplicationPeriod"
+              name="periodoReaplicacao"
               rules={[
                 {
                   required: true,

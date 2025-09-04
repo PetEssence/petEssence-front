@@ -62,8 +62,7 @@ export default function PetVacinas() {
 
   const loadVacinas = async () => {
     try {
-      const q = query(vacinaCollectionRef, where("isActive", "==", true));
-      const data = await getDocs(q);
+      const data = await getDocs(vacinaCollectionRef);
       setVacinas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
       message.error("Erro ao carregar vacinas");
@@ -80,12 +79,11 @@ export default function PetVacinas() {
     setEditingPetVacina(petVacina);
     const formData = {
       ...petVacina,
-      vaccinationDate: petVacina.vaccinationDate
-        ? dayjs(petVacina.vaccinationDate)
+      dataAplicacao: petVacina.dataAplicacao
+        ? dayjs(petVacina.dataAplicacao)
         : null,
     };
     form.setFieldsValue(formData);
-
     setIsModalVisible(true);
   };
 
@@ -94,8 +92,8 @@ export default function PetVacinas() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        vaccinationDate: values.vaccinationDate
-          ? values.vaccinationDate.format("YYYY-MM-DD")
+        dataAplicacao: values.dataAplicacao
+          ? values.dataAplicacao.format("YYYY-MM-DD")
           : null,
         petId: petId,
         isActive: true,
@@ -161,22 +159,22 @@ export default function PetVacinas() {
       },
     });
   };
-  const getVaccineName = (vaccineId) => {
-    const vaccine = vacinas.find((s) => s.id === vaccineId);
-    return vaccine ? vaccine.name : "Vacina não encontrada";
+  const getVaccineName = (idVacina) => {
+    const vaccine = vacinas.find((s) => s.id === idVacina);
+    return vaccine ? vaccine.nome : "Vacina não encontrada";
   };
 
   const columns = [
     {
       title: "Vacina",
-      dataIndex: "name",
+      dataIndex: "nome",
       width: 800,
-      key: "name",
+      key: "nome",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
             <div className="text-gray-500 text-sm">
-              {getVaccineName(record.vaccineId)}
+              {getVaccineName(record.idVacina)}
             </div>
           </div>
         </div>
@@ -186,7 +184,7 @@ export default function PetVacinas() {
       title: "Data da Aplicação",
       dataIndex: "vaccinationDate",
       width: 800,
-      key: "vaccinationDate",
+      key: "dataAplicacao",
       render: (_, record) => {
         const formatDate = (value) => {
           if (!value) return "-";
@@ -197,7 +195,7 @@ export default function PetVacinas() {
           <div className="flex items-center space-x-3">
             <div>
               <div className="text-gray-500 text-sm">
-                {formatDate(record.vaccinationDate)}
+                {formatDate(record.dataAplicacao)}
               </div>
             </div>
           </div>
@@ -206,13 +204,13 @@ export default function PetVacinas() {
     },
     {
       title: "Código do lote/dose",
-      dataIndex: "batchDose",
+      dataIndex: "codigoDoseLote",
       width: 800,
-      key: "batchDose",
+      key: "codigoDoseLote",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.batchDose}</div>
+            <div className="text-gray-500 text-sm">{record.codigoDoseLote}</div>
           </div>
         </div>
       ),
@@ -299,7 +297,7 @@ export default function PetVacinas() {
               <Form.Item
                 label="Vacina"
                 className="w-3/6"
-                name="vaccineId"
+                name="idVacina"
                 rules={[
                   { required: true, message: "Por favor, selecione a vacina!" },
                 ]}
@@ -310,14 +308,14 @@ export default function PetVacinas() {
                 >
                   {vacinas.map((vacina) => (
                     <Option key={vacina.id} value={vacina.id}>
-                      {vacina.name}
+                      {vacina.nome}
                     </Option>
                   ))}
                 </Select>
               </Form.Item>
               <Form.Item
                 label="Data da aplicação"
-                name="vaccinationDate"
+                name="dataAplicacao"
                 className="w-3/6"
                 rules={[
                   {
@@ -346,7 +344,7 @@ export default function PetVacinas() {
               </Form.Item>
               <Form.Item
                 label="Código da dose/lote"
-                name="batchDose"
+                name="codigoDoseLote"
                 rules={[
                   {
                     required: true,
