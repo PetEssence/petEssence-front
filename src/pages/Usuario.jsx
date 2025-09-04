@@ -314,7 +314,7 @@ export default function Usuario() {
             icon={<PlusOutlined />}
             onClick={handleAddUsuarios}
           >
-            Adicionar Usuário
+            Cadastrar Usuário
           </Button>
         </div>
         <Card>
@@ -336,7 +336,7 @@ export default function Usuario() {
           />
         </Card>
         <Modal
-          title={editingData ? "Editar Usuário" : "Adicionar Usuário"}
+          title={editingData ? "Editar Usuário" : "Cadastrar Usuário"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"

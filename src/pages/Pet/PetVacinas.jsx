@@ -275,7 +275,7 @@ export default function PetVacinas() {
               icon={<PlusOutlined />}
               onClick={handleAddPetVacina}
             >
-              Adicionar Vacina
+              Cadastrar Vacina
             </Button>
           </div>
 
@@ -287,7 +287,7 @@ export default function PetVacinas() {
             locale={{ emptyText: "Não há registros."}}
           />
           <Modal
-            title={editingPetVacina ? "Editar Vacina" : "Adicionar Vacina"}
+            title={editingPetVacina ? "Editar Vacina" : "Cadastrar Vacina"}
             open={isModalVisible}
             onOk={handleModalOk}
             okText="Confirmar"

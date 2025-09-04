@@ -231,7 +231,7 @@ export default function Vacina() {
             icon={<PlusOutlined />}
             onClick={handleAddVacina}
           >
-            Adicionar vacina
+            Cadastrar vacina
           </Button>
         </div>
 
@@ -256,7 +256,7 @@ export default function Vacina() {
         </Card>
 
         <Modal
-          title={editingVacina ? "Editar vacina" : "Adicionar vacina"}
+          title={editingVacina ? "Editar vacina" : "Cadastrar vacina"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"

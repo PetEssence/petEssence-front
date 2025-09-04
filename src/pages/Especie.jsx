@@ -196,7 +196,7 @@ export default function Especie() {
             icon={<PlusOutlined />}
             onClick={handleAddEspecie}
           >
-            Adicionar Espécie
+            Cadastrar Espécie
           </Button>
         </div>
 
@@ -220,7 +220,7 @@ export default function Especie() {
           />
         </Card>
         <Modal
-          title={editingEspecie ? "Editar Espécie" : "Adicionar Espécie"}
+          title={editingEspecie ? "Editar Espécie" : "Cadastrar Espécie"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"

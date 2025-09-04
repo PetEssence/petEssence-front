@@ -274,7 +274,7 @@ export default function PetVermifugo() {
               icon={<PlusOutlined />}
               onClick={handleAddVermifugo}
             >
-              Adicionar Vermifugação
+              Cadastrar Vermifugação
             </Button>
           </div>
 
@@ -289,7 +289,7 @@ export default function PetVermifugo() {
             title={
               editingVermifugo
                 ? "Editar Vermifugação"
-                : "Adicionar Vermifugação"
+                : "Cadastrar Vermifugação"
             }
             open={isModalVisible}
             onOk={handleModalOk}

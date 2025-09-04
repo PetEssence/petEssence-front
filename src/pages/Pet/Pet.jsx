@@ -314,7 +314,7 @@ export default function Pet() {
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Pets</h1>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAddPet}>
-            Adicionar Pet
+            Cadastrar Pet
           </Button>
         </div>
 
@@ -440,7 +440,7 @@ export default function Pet() {
         </Card>
 
         <Modal
-          title={"Adicionar Pet"}
+          title={"Cadastrar Pet"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"

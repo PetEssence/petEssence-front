@@ -192,7 +192,7 @@ export default function Raca() {
             icon={<PlusOutlined />}
             onClick={handleAddRaca}
           >
-            Adicionar Raça
+            Cadastrar Raça
           </Button>
         </div>
 
@@ -217,7 +217,7 @@ export default function Raca() {
         </Card>
 
         <Modal
-          title={editingRaca ? "Editar Raça" : "Adicionar Raça"}
+          title={editingRaca ? "Editar Raça" : "Cadastrar Raça"}
           open={isModalVisible}
           onOk={handleModalOk}
           okText="Confirmar"
