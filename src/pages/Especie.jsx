@@ -5,7 +5,6 @@ import {
   Button,
   Input,
   Space,
-  Tag,
   Modal,
   Form,
   message,
@@ -65,7 +64,6 @@ export default function Especie() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        isActive: true,
       };
       if (editingEspecie) {
         const especieDoc = doc(especieCollectionRef, editingEspecie.id);
@@ -97,66 +95,22 @@ export default function Especie() {
     }
   };
 
-  const handleActiveStatusEspecie = (especieId, activeStatus) => {
-    Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
-      content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
-      } esta espécie?`,
-      okText: "Confirmar",
-      okType: "primary",
-      cancelText: "Cancelar",
-      okButtonProps: {
-        className: "!bg-primaryGreen !hover:bg-primaryGreenHouver",
-      },
-      onOk: async () => {
-        try {
-          const especieDoc = doc(especieCollectionRef, especieId);
-          const newStatus = { isActive: !activeStatus };
-          await updateDoc(especieDoc, newStatus);
-          const updatedEspecies = especie.map((item) =>
-            item.id === especieId ? { ...item, isActive: !activeStatus } : item
-          );
-          setEspecie(updatedEspecies);
-          message.success("Espécie atualizada com sucesso!");
-        } catch (error) {
-          message.error("Erro ao excluir espécie");
-        }
-      },
-    });
-  };
-
   const filteredEspecies = especie.filter((especie) =>
-    especie.name.toLowerCase().includes(searchText.toLowerCase())
+    especie.nome.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
     {
       title: "Espécie",
-      dataIndex: "name",
+      dataIndex: "nome",
       width: 800,
-      key: "name",
+      key: "nome",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.name}</div>
+            <div className="text-gray-500 text-sm">{record.nome}</div>
           </div>
         </div>
-      ),
-    },
-    {
-      title: "Status",
-      key: "activeStatus",
-      align: "center",
-      width: 50,
-      render: (_, record) => (
-        <Space>
-          {record.isActive == true ? (
-            <Tag color="green">Ativo</Tag>
-          ) : (
-            <Tag color="red">Inativo</Tag>
-          )}
-        </Space>
       ),
     },
     {
@@ -171,14 +125,6 @@ export default function Especie() {
             icon={<EditOutlined />}
             onClick={() => handleEditEspecie(record)}
           />
-          <Button
-            type="text"
-            onClick={() =>
-              handleActiveStatusEspecie(record.id, record.isActive)
-            }
-          >
-            {record.isActive == true ? "Desativar" : "Ativar"}
-          </Button>
         </Space>
       ),
     },
@@ -231,7 +177,7 @@ export default function Especie() {
           <Form form={form} layout="vertical" className="mt-4">
             <Form.Item
               label="Nome"
-              name="name"
+              name="nome"
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />

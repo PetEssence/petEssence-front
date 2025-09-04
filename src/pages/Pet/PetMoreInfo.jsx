@@ -98,8 +98,7 @@ export default function PetMoreInfo() {
 
   const loadEspecies = async () => {
     try {
-      const q = query(especieCollectionRef, where("isActive", "==", true));
-      const especieData = await getDocs(q);
+      const especieData = await getDocs(especieCollectionRef);
       setEspecies(
         especieData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
       );
@@ -237,7 +236,7 @@ export default function PetMoreInfo() {
   };
   const getSpecieName = (specieId) => {
     const specie = especies.find((s) => s.id === specieId);
-    return specie ? specie.name : "Espécie não encontrada";
+    return specie ? specie.nome : "Espécie não encontrada";
   };
 
   const getBreedName = (breedId) => {
@@ -462,7 +461,7 @@ export default function PetMoreInfo() {
               >
                 {especies.map((especie) => (
                   <Option key={especie.id} value={especie.id}>
-                    {especie.name}
+                    {especie.nome}
                   </Option>
                 ))}
               </Select>
