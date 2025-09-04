@@ -63,7 +63,6 @@ export default function Raca() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        isActive: true,
       };
       if (editingRaca) {
         const racaDoc = doc(racaCollectionRef, editingRaca.id);
@@ -95,66 +94,22 @@ export default function Raca() {
     }
   };
 
-  const handleActiveStatus = (racaId, activeStatus) => {
-    Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
-      content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
-      } esta raça?`,
-      okText: "Confirmar",
-      okType: "primary",
-      cancelText: "Cancelar",
-      okButtonProps: {
-        className: "!bg-primaryGreen !hover:bg-primaryGreenHouver",
-      },
-      onOk: async () => {
-        try {
-          const racaDoc = doc(racaCollectionRef, racaId);
-          const newStatus = { isActive: !activeStatus };
-          await updateDoc(racaDoc, newStatus);
-          const updatedRaca = raca.map((item) =>
-            item.id === racaId ? { ...item, isActive: !activeStatus } : item
-          );
-          setRaca(updatedRaca);
-          message.success("Raça atualizada com sucesso!");
-        } catch (error) {
-          message.error("Erro ao excluir raça");
-        }
-      },
-    });
-  };
-
   const filteredRaças = raca.filter((raca) =>
-    raca.name.toLowerCase().includes(searchText.toLowerCase())
+    raca.nome.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
     {
       title: "Raça",
-      dataIndex: "name",
+      dataIndex: "nome",
       width: 800,
-      key: "name",
+      key: "nome",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.name}</div>
+            <div className="text-gray-500 text-sm">{record.nome}</div>
           </div>
         </div>
-      ),
-    },
-    {
-      title: "Status",
-      key: "activeStatus",
-      align: "center",
-      width: 50,
-      render: (_, record) => (
-        <Space>
-          {record.isActive == true ? (
-            <Tag color="green">Ativo</Tag>
-          ) : (
-            <Tag color="red">Inativo</Tag>
-          )}
-        </Space>
       ),
     },
     {
@@ -169,12 +124,6 @@ export default function Raca() {
             icon={<EditOutlined />}
             onClick={() => handleEditRaca(record)}
           />
-          <Button
-            type="text"
-            onClick={() => handleActiveStatus(record.id, record.isActive)}
-          >
-            {record.isActive == true ? "Desativar" : "Ativar"}
-          </Button>
         </Space>
       ),
     },
@@ -228,7 +177,7 @@ export default function Raca() {
           <Form form={form} layout="vertical" className="mt-4">
             <Form.Item
               label="Nome"
-              name="name"
+              name="nome"
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />

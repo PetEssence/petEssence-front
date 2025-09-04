@@ -115,8 +115,7 @@ export default function Pet() {
 
   const loadRacas = async () => {
     try {
-      const q = query(racaCollectionRef, where("isActive", "==", true));
-      const racaData = await getDocs(q);
+      const racaData = await getDocs(racaCollectionRef);
       setRacas(racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
       message.error("Erro ao carregar raças");
@@ -259,7 +258,7 @@ export default function Pet() {
 
   const getBreedName = (breedId) => {
     const breed = racas.find((r) => r.id === breedId);
-    return breed ? breed.name : "Raça não encontrada";
+    return breed ? breed.nome : "Raça não encontrada";
   };
 
   const getOwnerName = (ownerId) => {
@@ -336,7 +335,7 @@ export default function Pet() {
             >
               {racas.map((raca) => (
                 <Option key={raca.id} value={raca.id}>
-                  {raca.name}
+                  {raca.nome}
                 </Option>
               ))}
             </Select>
@@ -581,7 +580,7 @@ export default function Pet() {
               <Form.Item
                 label="Raça"
                 className="w-3/6"
-                name="breed"
+                name="raca"
                 rules={[
                   { required: true, message: "Por favor, selecione a raça!" },
                 ]}
@@ -589,7 +588,7 @@ export default function Pet() {
                 <Select placeholder="Selecione a raça" defaultValue={undefined}>
                   {racas.map((raca) => (
                     <Option key={raca.id} value={raca.id}>
-                      {raca.name}
+                      {raca.nome}
                     </Option>
                   ))}
                 </Select>

@@ -46,11 +46,7 @@ export default function Dashboard() {
   const loadPets = async () => {
     setLoading(true);
     try {
-      const qEspecie = query(
-        especieCollectionRef,
-        where("isActive", "==", true)
-      );
-      const especieData = await getDocs(qEspecie);
+      const especieData = await getDocs(especieCollectionRef);
       const especies = especieData.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
@@ -64,7 +60,7 @@ export default function Dashboard() {
 
       const getSpecieName = (specieId) => {
         const specie = especies.find((s) => s.id === specieId);
-        return specie ? specie.name : "Espécie não encontrada";
+        return specie ? specie.nome : "Espécie não encontrada";
       };
 
       petData.forEach((pet) => {
