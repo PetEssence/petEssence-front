@@ -74,8 +74,8 @@ export default function PetVermifugo() {
     setEditingVermifugo(vermifugo);
     const formData = {
       ...vermifugo,
-      applicationDate: vermifugo.applicationDate
-        ? dayjs(vermifugo.applicationDate)
+      dataAplicacao: vermifugo.dataAplicacao
+        ? dayjs(vermifugo.dataAplicacao)
         : null,
     };
     form.setFieldsValue(formData);
@@ -88,9 +88,9 @@ export default function PetVermifugo() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        isActive: true,
-        applicationDate: values.applicationDate
-          ? values.applicationDate.format("YYYY-MM-DD")
+        ativo: true,
+        dataAplicacao: values.dataAplicacao
+          ? values.dataAplicacao.format("YYYY-MM-DD")
           : null,
         petId: petId,
       };
@@ -107,14 +107,14 @@ export default function PetVermifugo() {
       } else {
         const docRef = await addDoc(vermifugoCollectionRef, {
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
+          dataCriacao: new Date().toISOString().split("T")[0],
         });
         setVermifugos([
           ...vermifugos,
           {
             ...formattedValues,
             id: docRef.id,
-            createdAt: new Date().toISOString().split("T")[0],
+            dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Vermifugação adicionada com sucesso!");
@@ -126,11 +126,11 @@ export default function PetVermifugo() {
     }
   };
 
-  const handleActiveStatusVermifugacao = (id, activeStatus) => {
+  const handleActiveStatusVermifugacao = (id, ativo) => {
     Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
+      title: `Confirmar ${ativo ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
+        ativo ? "desativar" : "ativar"
       } esta vermifugação do pet?`,
       okText: "Confirmar",
       okType: "primary",
@@ -141,10 +141,10 @@ export default function PetVermifugo() {
       onOk: async () => {
         try {
           const vermifugoDoc = doc(vermifugoCollectionRef, id);
-          const newStatus = { isActive: !activeStatus };
+          const newStatus = { ativo: !ativo };
           await updateDoc(vermifugoDoc, newStatus);
           const updatedData = vermifugos.map((item) =>
-            item.id === id ? { ...item, isActive: !activeStatus } : item
+            item.id === id ? { ...item, ativo: !ativo } : item
           );
           setVermifugos(updatedData);
           message.success("Vermifugação atualizada com sucesso!");
@@ -158,9 +158,9 @@ export default function PetVermifugo() {
   const columns = [
     {
       title: "Data da Aplicação",
-      dataIndex: "applicationDate",
+      dataIndex: "dataAplicacao",
       width: 800,
-      key: "applicationDate",
+      key: "dataAplicacao",
       render: (_, record) => {
         const formatDate = (value) => {
           if (!value) return "-";
@@ -171,7 +171,7 @@ export default function PetVermifugo() {
           <div className="flex items-center space-x-3">
             <div>
               <div className="text-gray-500 text-sm">
-                {formatDate(record.applicationDate)}
+                {formatDate(record.dataAplicacao)}
               </div>
             </div>
           </div>
@@ -193,38 +193,38 @@ export default function PetVermifugo() {
     },
     {
       title: "Peso do Pet (kg)",
-      dataIndex: "petWeight",
+      dataIndex: "peso",
       width: 800,
-      key: "petWeight",
+      key: "peso",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.petWeight}</div>
+            <div className="text-gray-500 text-sm">{record.peso}</div>
           </div>
         </div>
       ),
     },
     {
       title: "Tipo do Vermífugo",
-      dataIndex: "vermifugeType",
+      dataIndex: "tipo",
       width: 800,
-      key: "vermifugeType",
+      key: "tipo",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.vermifugeType}</div>
+            <div className="text-gray-500 text-sm">{record.tipo}</div>
           </div>
         </div>
       ),
     },
     {
       title: "Status",
-      key: "activeStatus",
+      key: "ativo",
       align: "center",
       width: 50,
       render: (_, record) => (
         <Space>
-          {record.isActive == true ? (
+          {record.ativo == true ? (
             <Tag color="green">Ativo</Tag>
           ) : (
             <Tag color="red">Inativo</Tag>
@@ -247,10 +247,10 @@ export default function PetVermifugo() {
           <Button
             type="text"
             onClick={() =>
-              handleActiveStatusVermifugacao(record.id, record.isActive)
+              handleActiveStatusVermifugacao(record.id, record.ativo)
             }
           >
-            {record.isActive == true ? "Desativar" : "Ativar"}
+            {record.ativo == true ? "Desativar" : "Ativar"}
           </Button>
         </Space>
       ),
@@ -301,7 +301,7 @@ export default function PetVermifugo() {
             <Form form={form} layout="vertical" className="mt-4">
               <Form.Item
                 label="Data da aplicação"
-                name="applicationDate"
+                name="dataAplicacao"
                 className="w-3/6"
                 rules={[
                   {
@@ -330,7 +330,7 @@ export default function PetVermifugo() {
               </Form.Item>
               <Form.Item
                 label="Peso do pet"
-                name="petWeight"
+                name="peso"
                 rules={[
                   {
                     required: true,
@@ -369,7 +369,7 @@ export default function PetVermifugo() {
 
               <Form.Item
                 label="Tipo do vermífugo"
-                name="vermifugeType"
+                name="tipo"
                 rules={[
                   {
                     required: true,
