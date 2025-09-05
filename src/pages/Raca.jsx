@@ -75,14 +75,14 @@ export default function Raca() {
       } else {
         const docRef = await addDoc(racaCollectionRef, {
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
+          dataCriacao: new Date().toISOString().split("T")[0],
         });
         setRaca([
           ...raca,
           {
             id: docRef.id,
             ...formattedValues,
-            createdAt: new Date().toISOString().split("T")[0],
+            dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Raça adicionada com sucesso!");

@@ -53,7 +53,7 @@ export default function PetCard() {
 
   const getOwnerName = (ownerId) => {
     const owner = usuarios.find((u) => u.id === ownerId);
-    return owner ? owner.name : "Dono não encontrado";
+    return owner ? owner.nome : "Dono não encontrado";
   };
 
   if (loading) return <div>Carregando</div>;
@@ -61,18 +61,18 @@ export default function PetCard() {
   return (
     <div className="min-w-64 border rounded shadow-md flex flex-col items-center p-4 gap-2">
       <img
-        src={pet.photo}
+        src={pet.foto}
         alt="preview"
         className="mt-2 object-cover rounded w-[200px] h-[200px]"
       />
       <div className=" flex gap-1">
         <span className="font-bold">Nome: </span>
-        <p>{pet.name}</p>
+        <p>{pet.nome}</p>
       </div>
       <div className="flex flex-col gap-1 text-center">
         <span className="font-bold">Tutores: </span>
         <div>
-          {pet.owner?.map((o, index) => (
+          {pet.tutorAnimal?.map((o, index) => (
             <p key={index}>{getOwnerName(o)}</p>
           ))}
         </div>

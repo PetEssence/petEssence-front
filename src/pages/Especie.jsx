@@ -76,14 +76,14 @@ export default function Especie() {
       } else {
         const docRef = await addDoc(especieCollectionRef, {
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
+          dataCriacao: new Date().toISOString().split("T")[0],
         });
         setEspecie([
           ...especie,
           {
             id: docRef.id,
             ...formattedValues,
-            createdAt: new Date().toISOString().split("T")[0],
+            dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Espécie adicionada com sucesso!");

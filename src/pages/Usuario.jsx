@@ -36,7 +36,7 @@ export default function Usuario() {
   const [editingData, setEditingUsuario] = useState(null);
   const [form] = Form.useForm();
   const usuarioCollectionRef = collection(db, "usuario");
-  const userRole = Form.useWatch('role', form);
+  const usuarioCargo = Form.useWatch('cargo', form);
 
   useEffect(() => {
     loadUsuarios();
@@ -67,7 +67,7 @@ export default function Usuario() {
 
     const formData = {
       ...usuario,
-      birthDate: usuario.birthDate ? dayjs(usuario.birthDate) : null,
+      dataNasc: usuario.dataNasc ? dayjs(usuario.dataNasc) : null,
     };
 
     form.setFieldsValue(formData);
@@ -126,11 +126,11 @@ export default function Usuario() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        complement: values.complement || "",
-        birthDate: values.birthDate
-          ? values.birthDate.format("YYYY-MM-DD")
+        complemento: values.complemento || "",
+        dataNasc: values.dataNasc
+          ? values.dataNasc.format("YYYY-MM-DD")
           : null,
-        isActive: true,
+        ativo: true,
       };
 
       if (editingData) {
@@ -145,7 +145,7 @@ export default function Usuario() {
       } else {
         const docRef = await addDoc(usuarioCollectionRef, {
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
+          dataCriacao: new Date().toISOString().split("T")[0],
         });
 
         setUsuario([
@@ -153,7 +153,7 @@ export default function Usuario() {
           {
             id: docRef.id,
             ...formattedValues,
-            createdAt: new Date().toISOString().split("T")[0],
+            dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Usuário adicionado com sucesso!");
@@ -166,11 +166,11 @@ export default function Usuario() {
     }
   };
 
-  const handleActiveStatus = (usuarioId, activeStatus) => {
+  const handleActiveStatus = (usuarioId, ativo) => {
     Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
+      title: `Confirmar ${ativo ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
+        ativo ? "desativar" : "ativar"
       } este usuário?`,
       okText: "Confirmar",
       okType: "primary",
@@ -181,11 +181,11 @@ export default function Usuario() {
       onOk: async () => {
         try {
           const usuarioDoc = doc(usuarioCollectionRef, usuarioId);
-          const newStatus = { isActive: !activeStatus };
+          const newStatus = { ativo: !ativo };
           await updateDoc(usuarioDoc, newStatus);
 
           const updatedUsuarios = usuario.map((item) =>
-            item.id === usuarioId ? { ...item, isActive: !activeStatus } : item
+            item.id === usuarioId ? { ...item, ativo: !ativo } : item
           );
           setUsuario(updatedUsuarios);
           message.success("Usuário atualizado com sucesso!");
@@ -204,10 +204,10 @@ export default function Usuario() {
         const data = await res.json();
         if (!data.erro) {
           form.setFieldsValue({
-            street: data.logradouro,
-            neighborhood: data.bairro,
-            city: data.localidade,
-            state: data.uf,
+            logradouro: data.logradouro,
+            bairro: data.bairro,
+            cidade: data.localidade,
+            estado: data.uf,
           });
         }
       } catch (error) {
@@ -216,19 +216,19 @@ export default function Usuario() {
     }
   };
   const filteredUsuarios = usuario.filter((usuario) =>
-    usuario.name.toLowerCase().includes(searchText.toLowerCase())
+    usuario.nome.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
     {
       title: "Nome Completo",
-      dataIndex: "name",
+      dataIndex: "nome",
       width: 800,
-      key: "name",
+      key: "nome",
       render: (_, record) => (
         <div className="flex items-center space-x-3">
           <div>
-            <div className="text-gray-500 text-sm">{record.name}</div>
+            <div className="text-gray-500 text-sm">{record.nome}</div>
           </div>
         </div>
       ),
@@ -249,16 +249,16 @@ export default function Usuario() {
 
     {
       title: "Cargo",
-      dataIndex: "role",
+      dataIndex: "cargo",
       width: 800,
-      key: "role",
+      key: "cargo",
       render: (_, record) => (
         <Space>
-          {record.role === "employee" && (
+          {record.cargo === "funcionario" && (
             <Tag color="blue-inverse">Funcionário</Tag>
           )}
-          {record.role === "client" && <Tag color="gold-inverse">Cliente</Tag>}
-          {record.role === "vet" && (
+          {record.cargo === "cliente" && <Tag color="gold-inverse">Cliente</Tag>}
+          {record.cargo === "veterinario" && (
             <Tag color="green-inverse">Veterinário</Tag>
           )}
         </Space>
@@ -266,12 +266,12 @@ export default function Usuario() {
     },
     {
       title: "Status",
-      key: "activeStatus",
+      key: "ativo",
       align: "center",
       width: 50,
       render: (_, record) => (
         <Space>
-          {record.isActive ? (
+          {record.ativo ? (
             <Tag color="green">Ativo</Tag>
           ) : (
             <Tag color="red">Inativo</Tag>
@@ -293,9 +293,9 @@ export default function Usuario() {
           />
           <Button
             type="text"
-            onClick={() => handleActiveStatus(record.id, record.isActive)}
+            onClick={() => handleActiveStatus(record.id, record.ativo)}
           >
-            {record.isActive ? "Desativar" : "Ativar"}
+            {record.ativo ? "Desativar" : "Ativar"}
           </Button>
         </Space>
       ),
@@ -347,7 +347,7 @@ export default function Usuario() {
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item
               label="Nome Completo"
-              name="name"
+              name="nome"
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />
@@ -421,7 +421,7 @@ export default function Usuario() {
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Data de Nascimento"
-                name="birthDate"
+                name="dataNasc"
                 className="w-3/6"
                 rules={[
                   {
@@ -450,7 +450,7 @@ export default function Usuario() {
               </Form.Item>
               <Form.Item
                 label="Celular/Telefone"
-                name="phone"
+                name="celular"
                 className="w-3/6"
                 rules={[
                   {
@@ -480,7 +480,7 @@ export default function Usuario() {
               </Form.Item>
               <Form.Item
                 label="Bairro"
-                name="neighborhood"
+                name="bairro"
                 className="w-4/6"
                 rules={[
                   { required: true, message: "Por favor, insira o bairro!" },
@@ -491,8 +491,8 @@ export default function Usuario() {
             </div>
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
-                label="Rua"
-                name="street"
+                label="logradouro"
+                name="logradouro"
                 className="w-4/6"
                 rules={[
                   { required: true, message: "Por favor, insira a rua!" },
@@ -502,7 +502,7 @@ export default function Usuario() {
               </Form.Item>
               <Form.Item
                 label="Número"
-                name="number"
+                name="numero"
                 rules={[
                   { required: true, message: "Por favor, insira o número!" },
                 ]}
@@ -513,7 +513,7 @@ export default function Usuario() {
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Cidade"
-                name="city"
+                name="cidade"
                 className="w-4/6"
                 rules={[
                   { required: true, message: "Por favor, insira a cidade!" },
@@ -523,7 +523,7 @@ export default function Usuario() {
               </Form.Item>
               <Form.Item
                 label="Estado"
-                name="state"
+                name="estado"
                 className="w-1/3"
                 rules={[
                   { required: true, message: "Por favor, insira o estado!" },
@@ -542,7 +542,7 @@ export default function Usuario() {
             <Divider plain={false}>Permissão</Divider>
             <Form.Item
               label="Cargo"
-              name="role"
+              name="cargo"
               rules={[
                 { required: true, message: "Por favor, insira o cargo!" },
               ]}
@@ -551,14 +551,14 @@ export default function Usuario() {
                 placeholder="Selecione o cargo"
                 defaultValue={undefined}
                 options={[
-                  { value: "employee", label: "Funcionário" },
-                  { value: "client", label: "Cliente" },
-                  { value: "vet", label: "Veterinário" },
+                  { value: "funcionario", label: "Funcionário" },
+                  { value: "cliente", label: "Cliente" },
+                  { value: "veterinario", label: "Veterinário" },
                 ]}
               />
             </Form.Item>
 
-            {userRole === "vet" && (
+            {usuarioCargo === "veterinario" && (
               <Form.Item
                 label="CRMV"
                 name="crmv"

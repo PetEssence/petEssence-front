@@ -51,7 +51,7 @@ export default function Dashboard() {
         ...doc.data(),
         id: doc.id,
       }));
-      const q = query(petCollectionRef, where("isActive", "==", true));
+      const q = query(petCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
       const petData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       setPets(petData);
@@ -64,8 +64,8 @@ export default function Dashboard() {
       };
 
       petData.forEach((pet) => {
-        const registrationDate = formatDate(pet.createdAt);
-        const specie = getSpecieName(pet.specie);
+        const registrationDate = formatDate(pet.dataCriacao);
+        const specie = getSpecieName(pet.especie);
         specieCount[specie] = (specieCount[specie] || 0) + 1;
         petByDate[registrationDate] = (petByDate[registrationDate] || 0) + 1;
       });
@@ -99,17 +99,13 @@ export default function Dashboard() {
 
   const loadPetVacinas = async () => {
     try {
-      const qVaccine = query(
-        vacinaCollectionRef,
-        where("isActive", "==", true)
-      );
-      const vaccineData = await getDocs(qVaccine);
+      const vaccineData = await getDocs(vacinaCollectionRef);
       const vacinas = vaccineData.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
 
-      const q = query(petVacinaCollectionRef, where("isActive", "==", true));
+      const q = query(petVacinaCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
       const petVacinasData = data.docs.map((doc) => ({
         ...doc.data(),
@@ -117,7 +113,7 @@ export default function Dashboard() {
       }));
       const getVaccineName = (vaccineId) => {
         const vaccine = vacinas.find((s) => s.id === vaccineId);
-        return vaccine ? vaccine.name : "Vacina não encontrada";
+        return vaccine ? vaccine.nome : "Vacina não encontrada";
       };
 
       setPetVacinas(petVacinasData);
@@ -129,7 +125,7 @@ export default function Dashboard() {
 
       const vaccineArray = Object.entries(vaccineCount).map(
         ([vaccine, count]) => ({
-          name: vaccine,
+           name: vaccine,
           "N° de vacinas aplicadas": count,
         })
       );
@@ -141,7 +137,7 @@ export default function Dashboard() {
 
   const loadVermifugos = async () => {
     try {
-      const q = query(vermifugosCollectionRef, where("isActive", "==", true));
+      const q = query(vermifugosCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
       setVermifugos(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
@@ -153,8 +149,8 @@ export default function Dashboard() {
     try {
       const q = query(
         usuarioCollectionRef,
-        where("isActive", "==", true),
-        where("role", "==", "client")
+        where("ativo", "==", true),
+        where("cargo", "==", "cliente")
       );
       const usuarioData = await getDocs(q);
       const data = usuarioData.docs.map((doc) => ({
@@ -164,7 +160,7 @@ export default function Dashboard() {
       setUsuarios(data);
       const userByDate = {};
       data.forEach((user) => {
-        const userRegistrationDate = formatDate(user.createdAt);
+        const userRegistrationDate = formatDate(user.dataCriacao);
         userByDate[userRegistrationDate] =
           (userByDate[userRegistrationDate] || 0) + 1;
       });

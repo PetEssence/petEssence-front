@@ -101,8 +101,8 @@ export default function Pet() {
     try {
       const q = query(
         usuarioCollectionRef,
-        where("isActive", "==", true),
-        where("role", "==", "client")
+        where("ativo", "==", true),
+        where("cargo", "==", "cliente")
       );
       const usuarioData = await getDocs(q);
       setUsuarios(
@@ -132,7 +132,7 @@ export default function Pet() {
     try {
       setSavingLoading(true);
       const values = await form.validateFields();
-      let photoUrl = values.photo || null;
+      let photoUrl = values.foto || null;
       if (file) {
         try {
           const resized = await resizeImage(file, 300, 300);
@@ -152,19 +152,19 @@ export default function Pet() {
       }
       const formattedValues = {
         ...values,
-        photo: photoUrl,
-        birthDate: values.birthDate
-          ? values.birthDate.format("YYYY-MM-DD")
+        foto: photoUrl,
+        dataNasc: values.dataNasc
+          ? values.dataNasc.format("YYYY-MM-DD")
           : null,
       };
 
       const docRef = await addDoc(petCollectionRef, {
         ...formattedValues,
-        createdAt: new Date().toISOString().split("T")[0],
-        isActive: true,
+        dataCriacao: new Date().toISOString().split("T")[0],
+        ativo: true,
       });
 
-      for (const ownerId of formattedValues.owner) {
+      for (const ownerId of formattedValues.tutorAnimal) {
         const ownerDocRef = doc(usuarioCollectionRef, ownerId);
         const ownerSnap = await getDoc(ownerDocRef);
 
@@ -183,8 +183,8 @@ export default function Pet() {
         {
           id: docRef.id,
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
-          isActive: true,
+          dataCriacao: new Date().toISOString().split("T")[0],
+          ativo: true,
         },
       ]);
       message.success("Pet adicionado com sucesso!");
@@ -236,10 +236,10 @@ export default function Pet() {
   };
 
   const filteredPet = pets.filter((pet) => {
-    const matchName = pet.name.toLowerCase().includes(searchText.toLowerCase());
-    const matchRaca = !searchRaca || pet.breed === searchRaca;
-    const matchEspecie = !searchEspecie || pet.specie === searchEspecie;
-    const matchTutor = !searchUsuario || pet.owner.includes(searchUsuario);
+    const matchName = pet.nome.toLowerCase().includes(searchText.toLowerCase());
+    const matchRaca = !searchRaca || pet.raca === searchRaca;
+    const matchEspecie = !searchEspecie || pet.especie === searchEspecie;
+    const matchTutor = !searchUsuario || pet.tutorAnimal.includes(searchUsuario);
 
     return matchName && matchRaca && matchEspecie && matchTutor;
   });
@@ -263,7 +263,7 @@ export default function Pet() {
 
   const getOwnerName = (ownerId) => {
     const owner = usuarios.find((u) => u.id === ownerId);
-    return owner ? owner.name : "Dono não encontrado";
+    return owner ? owner.nome : "Dono não encontrado";
   };
 
   useEffect(() => {
@@ -390,7 +390,7 @@ export default function Pet() {
                       <Avatar
                         shape="square"
                         size="large"
-                        src={pet.photo}
+                        src={pet.foto}
                         className="object-contain"
                         style={{ minHeight: 200, maxHeight: 200 }}
                       />
@@ -399,8 +399,8 @@ export default function Pet() {
                     <Meta
                       title={
                         <div className="flex items-center justify-between">
-                          <span className="truncate">{pet.name}</span>
-                          {pet.isActive ? (
+                          <span className="truncate">{pet.nome}</span>
+                          {pet.ativo ? (
                             <Tag color="green" size="small">
                               Ativo
                             </Tag>
@@ -415,13 +415,13 @@ export default function Pet() {
                         <div className="space-y-1">
                           <div className="text-xs text-gray-500 truncate">
                             Tutores:{" "}
-                            {pet.owner.map((id) => getOwnerName(id) + " - ")}
+                            {pet.tutorAnimal.map((id) => getOwnerName(id) + " - ")}
                           </div>
                           <div className="text-xs text-gray-400">
-                            Raça: {getBreedName(pet.breed)}
+                            Raça: {getBreedName(pet.raca)}
                           </div>
                           <div className="text-xs text-gray-400">
-                            Espécie: {getSpecieName(pet.specie)}
+                            Espécie: {getSpecieName(pet.especie)}
                           </div>
                         </div>
                       }
@@ -450,7 +450,7 @@ export default function Pet() {
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item
               label="Foto do pet"
-              name="photo"
+              name="foto"
               className="flex justify-center items-center"
             >
               <div className="flex justify-center items-center flex-col gap-5">
@@ -503,7 +503,7 @@ export default function Pet() {
 
             <Form.Item
               label="Nome"
-              name="name"
+              name="nome"
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />
@@ -512,7 +512,7 @@ export default function Pet() {
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Sexo"
-                name="genre"
+                name="sexo"
                 className="w-3/6"
                 rules={[
                   { required: true, message: "Por favor, selecione o sexo!" },
@@ -522,16 +522,16 @@ export default function Pet() {
                   placeholder="Selecione o sexo"
                   defaultValue={undefined}
                   options={[
-                    { value: "female", label: "Fêmea" },
-                    { value: "male", label: "Macho" },
-                    { value: "other", label: "Outro" },
+                    { value: "femea", label: "Fêmea" },
+                    { value: "macho", label: "Macho" },
+                    { value: "outros", label: "Outro" },
                   ]}
                 ></Select>
               </Form.Item>
               <Form.Item
                 label="Data de nascimento ou estimativa"
                 tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
-                name="birthDate"
+                name="dataNasc"
                 className="w-3/6"
                 rules={[
                   {
@@ -559,7 +559,7 @@ export default function Pet() {
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
                 label="Espécie"
-                name="specie"
+                name="especie"
                 className="w-3/6"
                 rules={[
                   {
@@ -596,7 +596,7 @@ export default function Pet() {
             </div>
             <Form.Item
               label="Tutor"
-              name="owner"
+              name="tutorAnimal"
               rules={[
                 { required: true, message: "Por favor, selecione um tutor!" },
               ]}
@@ -608,7 +608,7 @@ export default function Pet() {
               >
                 {usuarios.map((usuario) => (
                   <Option key={usuario.id} value={usuario.id}>
-                    {usuario.name}
+                    {usuario.nome}
                   </Option>
                 ))}
               </Select>

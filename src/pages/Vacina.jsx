@@ -83,14 +83,14 @@ export default function Vacina() {
       } else {
         const docRef = await addDoc(vacinaCollectionRef, {
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
+          dataCriacao: new Date().toISOString().split("T")[0],
         });
         setVacina([
           ...vacina,
           {
             id: docRef.id,
             ...formattedValues,
-            createdAt: new Date().toISOString().split("T")[0],
+            dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Vacina adicionada com sucesso!");

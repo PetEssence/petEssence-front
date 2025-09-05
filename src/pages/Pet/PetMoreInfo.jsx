@@ -38,7 +38,7 @@ export default function PetMoreInfo() {
   const [file, setFile] = useState(null);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [savingLoading, setSavingLoading] = useState(false);
-  const [isActive, setIsActive] = useState(true);
+  const [ativo, setAtivo] = useState(true);
   const [usingCamera, setUsingCamera] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -83,15 +83,15 @@ export default function PetMoreInfo() {
   const loadFormData = () => {
     const formData = {
       ...pet,
-      photo: pet.photo,
-      birthDate: pet.birthDate ? dayjs(pet.birthDate) : null,
-      createdAt: pet.createdAt ? dayjs(pet.createdAt) : null,
+      foto: pet.foto,
+      dataNasc: pet.dataNasc ? dayjs(pet.dataNasc) : null,
+      dataCriacao: pet.dataCriacao ? dayjs(pet.dataCriacao) : null,
     };
-    if (formData.photo) {
-      setFile(formData.photo);
+    if (formData.foto) {
+      setFile(formData.foto);
       setHasUploadedFile(true);
     }
-    setIsActive(formData.isActive);
+    setAtivo(formData.ativo);
     form.setFieldsValue(formData);
     setLoading(false);
   };
@@ -111,8 +111,8 @@ export default function PetMoreInfo() {
     try {
       const q = query(
         usuarioCollectionRef,
-        where("isActive", "==", true),
-        where("role", "==", "client")
+        where("ativo", "==", true),
+        where("cargo", "==", "cliente")
       );
       const usuarioData = await getDocs(q);
       setUsuarios(
@@ -158,9 +158,9 @@ export default function PetMoreInfo() {
       }
       const formattedValues = {
         ...values,
-        isActive: isActive,
-        birthDate: values.birthDate
-          ? values.birthDate.format("YYYY-MM-DD")
+        ativo: ativo,
+        dataNasc: values.dataNasc
+          ? values.dataNasc.format("YYYY-MM-DD")
           : null,
         photo: photoUrl,
       };
@@ -223,9 +223,9 @@ export default function PetMoreInfo() {
       onOk: async () => {
         try {
           const petDoc = doc(petCollectionRef, petId);
-          const newStatus = { isActive: !activeStatus };
+          const newStatus = { ativo: !activeStatus };
           await updateDoc(petDoc, newStatus);
-          setIsActive(!isActive);
+          setAtivo(!ativo);
           message.success("Pet atualizado com sucesso!");
         } catch (error) {
           message.error("Erro ao atualizar pet");
@@ -389,7 +389,7 @@ export default function PetMoreInfo() {
 
           <Form.Item
             label="Nome"
-            name="name"
+            name="nome"
             rules={[{ required: true, message: "Por favor, insira o nome!" }]}
           >
             <Input />
@@ -398,7 +398,7 @@ export default function PetMoreInfo() {
           <div className="w-full flex gap-8 justify-between">
             <Form.Item
               label="Sexo"
-              name="genre"
+              name="sexo"
               className="w-3/6"
               rules={[
                 { required: true, message: "Por favor, selecione o gênero!" },
@@ -406,18 +406,18 @@ export default function PetMoreInfo() {
             >
               <Select
                 placeholder="Selecione o gênero"
-                defaultValue={pet.genre}
+                defaultValue={pet.sexo}
                 options={[
-                  { value: "female", label: "Fêmea" },
-                  { value: "male", label: "Macho" },
-                  { value: "other", label: "Outro" },
+                  { value: "femea", label: "Fêmea" },
+                  { value: "macho", label: "Macho" },
+                  { value: "outros", label: "Outros" },
                 ]}
               ></Select>
             </Form.Item>
             <Form.Item
               label="Data de nascimento ou estimativa"
               tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
-              name="birthDate"
+              name="dataNasc"
               className="w-3/6"
               rules={[
                 {
@@ -445,7 +445,7 @@ export default function PetMoreInfo() {
           <div className="w-full flex gap-8 justify-between">
             <Form.Item
               label="Espécie"
-              name="specie"
+              name="especie"
               className="w-3/6"
               rules={[
                 {
@@ -469,14 +469,14 @@ export default function PetMoreInfo() {
             <Form.Item
               label="Raça"
               className="w-3/6"
-              name="breed"
+              name="raca"
               rules={[
                 { required: true, message: "Por favor, selecione a raça!" },
               ]}
             >
               <Select
                 placeholder="Selecione a raça"
-                defaultValue={getBreedName(pet.breed)}
+                defaultValue={getBreedName(pet.raca)}
               >
                 {racas.map((raca) => (
                   <Option key={raca.id} value={raca.id}>
@@ -488,19 +488,19 @@ export default function PetMoreInfo() {
           </div>
           <Form.Item
             label="Tutor"
-            name="owner"
+            name="tutorAnimal"
             rules={[
               { required: true, message: "Por favor, selecione um tutor!" },
             ]}
           >
             <Select
               placeholder="Selecione um ou mais tutores"
-              defaultValue={pet.owner?.map((id) => getOwnerName(id))}
+              defaultValue={pet.tutorAnimal?.map((id) => getOwnerName(id))}
               mode="multiple"
             >
               {usuarios.map((usuario) => (
                 <Option key={usuario.id} value={usuario.id}>
-                  {usuario.name}
+                  {usuario.nome}
                 </Option>
               ))}
             </Select>
@@ -509,9 +509,9 @@ export default function PetMoreInfo() {
             <div className="flex justify-between">
               <Button
                 danger
-                onClick={() => handleActiveStatus(pet.id, isActive)}
+                onClick={() => handleActiveStatus(pet.id, ativo)}
               >
-                {isActive ? "Desativar" : "Ativar"}
+                {ativo ? "Desativar" : "Ativar"}
               </Button>
               <Button type="primary" htmlType="submit" loading={savingLoading}>
                 Confirmar

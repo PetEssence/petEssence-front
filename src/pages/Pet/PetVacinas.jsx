@@ -96,7 +96,7 @@ export default function PetVacinas() {
           ? values.dataAplicacao.format("YYYY-MM-DD")
           : null,
         petId: petId,
-        isActive: true,
+        ativo: true,
       };
 
       if (editingPetVacina) {
@@ -112,14 +112,14 @@ export default function PetVacinas() {
       } else {
         const docRef = await addDoc(petVacinasCollectionRef, {
           ...formattedValues,
-          createdAt: new Date().toISOString().split("T")[0],
+          dataCriacao: new Date().toISOString().split("T")[0],
         });
         setPetVacinas([
           ...petVacinas,
           {
             id: docRef.id,
             ...formattedValues,
-            createdAt: new Date().toISOString().split("T")[0],
+            dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Vacina do pet adicionada com sucesso!");
@@ -146,10 +146,10 @@ export default function PetVacinas() {
       onOk: async () => {
         try {
           const petVacinaDoc = doc(petVacinasCollectionRef, id);
-          const newStatus = { isActive: !activeStatus };
+          const newStatus = { ativo: !activeStatus };
           await updateDoc(petVacinaDoc, newStatus);
           const updatedData = petVacinas.map((item) =>
-            item.id === id ? { ...item, isActive: !activeStatus } : item
+            item.id === id ? { ...item, ativo: !activeStatus } : item
           );
           setPetVacinas(updatedData);
           message.success("Vacina do pet atualizada com sucesso!");
@@ -222,7 +222,7 @@ export default function PetVacinas() {
       width: 50,
       render: (_, record) => (
         <Space>
-          {record.isActive == true ? (
+          {record.ativo == true ? (
             <Tag color="green">Ativo</Tag>
           ) : (
             <Tag color="red">Inativo</Tag>
@@ -245,10 +245,10 @@ export default function PetVacinas() {
           <Button
             type="text"
             onClick={() =>
-              handleActiveStatusPetVacina(record.id, record.isActive)
+              handleActiveStatusPetVacina(record.id, record.ativo)
             }
           >
-            {record.isActive == true ? "Desativar" : "Ativar"}
+            {record.ativo == true ? "Desativar" : "Ativar"}
           </Button>
         </Space>
       ),
