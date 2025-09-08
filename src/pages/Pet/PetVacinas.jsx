@@ -33,6 +33,7 @@ const { Option } = Select;
 export default function PetVacinas() {
   const [petVacinas, setPetVacinas] = useState([]);
   const [vacinas, setVacinas] = useState([]);
+  const [veterinarios, setVeterinarios] = useState([]);
   const { petId } = useParams();
 
   const [loading, setLoading] = useState(false);
@@ -40,21 +41,42 @@ export default function PetVacinas() {
   const [editingPetVacina, setEditingPetVacina] = useState(null);
   const [form] = Form.useForm();
   const vacinaCollectionRef = collection(db, "vacina");
-  const petVacinasCollectionRef = collection(db, "petVacina");
+  const vacinasAplicadasCollectionRef = collection(db, "vacinasAplicadas");
+  const usuarioCollectionRef = collection(db, "usuario");
 
   useEffect(() => {
     loadPetVacinas();
     loadVacinas();
+    listarUsuarios();
   }, []);
 
   const loadPetVacinas = async () => {
     setLoading(true);
     try {
-      const q = query(petVacinasCollectionRef, where("petId", "==", petId));
+      const q = query(
+        vacinasAplicadasCollectionRef,
+        where("petId", "==", petId)
+      );
       const data = await getDocs(q);
       setPetVacinas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
       message.error("Erro ao carregar as vacinas do pet");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const listarUsuarios = async () => {
+    try {
+      const q = query(
+        usuarioCollectionRef,
+        where("cargo", "==", "veterinario"),
+        where("ativo", "==", true)
+      );
+      const data = await getDocs(q);
+      setVeterinarios(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    } catch (error) {
+      message.error("Erro ao carregar os veterinarios");
     } finally {
       setLoading(false);
     }
@@ -82,6 +104,9 @@ export default function PetVacinas() {
       dataAplicacao: petVacina.dataAplicacao
         ? dayjs(petVacina.dataAplicacao)
         : null,
+      dataFabricacao: petVacina.dataFabricacao
+        ? dayjs(petVacina.dataFabricacaoFDF)
+        : null,
     };
     form.setFieldsValue(formData);
     setIsModalVisible(true);
@@ -92,6 +117,9 @@ export default function PetVacinas() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
+        dataFabricacao: values.dataFabricacao
+          ? values.dataFabricacao.format("YYYY-MM")
+          : null,
         dataAplicacao: values.dataAplicacao
           ? values.dataAplicacao.format("YYYY-MM-DD")
           : null,
@@ -100,7 +128,10 @@ export default function PetVacinas() {
       };
 
       if (editingPetVacina) {
-        const petVacinaDoc = doc(petVacinasCollectionRef, editingPetVacina.id);
+        const petVacinaDoc = doc(
+          vacinasAplicadasCollectionRef,
+          editingPetVacina.id
+        );
         const updatedData = petVacinas.map((petVacina) =>
           petVacina.id === editingPetVacina.id
             ? { ...petVacina, ...values }
@@ -110,7 +141,7 @@ export default function PetVacinas() {
         await updateDoc(petVacinaDoc, formattedValues);
         message.success("Vacina do pet atualizada com sucesso!");
       } else {
-        const docRef = await addDoc(petVacinasCollectionRef, {
+        const docRef = await addDoc(vacinasAplicadasCollectionRef, {
           ...formattedValues,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
@@ -145,7 +176,7 @@ export default function PetVacinas() {
       },
       onOk: async () => {
         try {
-          const petVacinaDoc = doc(petVacinasCollectionRef, id);
+          const petVacinaDoc = doc(vacinasAplicadasCollectionRef, id);
           const newStatus = { ativo: !activeStatus };
           await updateDoc(petVacinaDoc, newStatus);
           const updatedData = petVacinas.map((item) =>
@@ -244,9 +275,7 @@ export default function PetVacinas() {
           />
           <Button
             type="text"
-            onClick={() =>
-              handleActiveStatusPetVacina(record.id, record.ativo)
-            }
+            onClick={() => handleActiveStatusPetVacina(record.id, record.ativo)}
           >
             {record.ativo == true ? "Desativar" : "Ativar"}
           </Button>
@@ -282,7 +311,7 @@ export default function PetVacinas() {
             dataSource={petVacinas}
             rowKey="id"
             loading={loading}
-            locale={{ emptyText: "Não há registros."}}
+            locale={{ emptyText: "Não há registros." }}
           />
           <Modal
             title={editingPetVacina ? "Editar Vacina" : "Cadastrar Vacina"}
@@ -313,35 +342,71 @@ export default function PetVacinas() {
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item
-                label="Data da aplicação"
-                name="dataAplicacao"
-                className="w-3/6"
-                rules={[
-                  {
-                    required: true,
-                    message: "Por favor, insira a data de aplicação!",
-                  },
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      if (value.isAfter(dayjs())) {
-                        return Promise.reject("A data não pode ser no futuro!");
-                      }
-                      return Promise.resolve();
+              <div className="w-full flex gap-8 justify-between">
+                <Form.Item
+                  label="Data da aplicação"
+                  name="dataAplicacao"
+                  className="w-3/6"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, insira a data de aplicação!",
                     },
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="DD/MM/YYYY"
-                  style={{ width: "100%" }}
-                  placeholder="Selecione uma data"
-                  disabledDate={(current) =>
-                    current && current > dayjs().endOf("day")
-                  }
-                />
-              </Form.Item>
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        if (value.isAfter(dayjs())) {
+                          return Promise.reject(
+                            "A data não pode ser no futuro!"
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    style={{ width: "100%" }}
+                    placeholder="Selecione uma data"
+                    disabledDate={(current) =>
+                      current && current > dayjs().endOf("day")
+                    }
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Data da fabricação"
+                  name="dataFabricacao"
+                  className="w-3/6"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, insira a data de fabricação!",
+                    },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        if (value.isAfter(dayjs())) {
+                          return Promise.reject(
+                            "A data não pode ser no futuro!"
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <DatePicker
+                    format="MM/YYYY"
+                    picker="month"
+                    style={{ width: "100%" }}
+                    placeholder="Selecione uma data"
+                    disabledDate={(current) =>
+                      current && current > dayjs().endOf("day")
+                    }
+                  />
+                </Form.Item>
+              </div>
               <Form.Item
                 label="Código da dose/lote"
                 name="codigoDoseLote"
@@ -353,6 +418,28 @@ export default function PetVacinas() {
                 ]}
               >
                 <Input />
+              </Form.Item>
+
+              <Form.Item
+                label="Veterinário"
+                name="veterinario"
+                rules={[
+                  {
+                    required: true,
+                    message: "Por favor, selecione o veterinário!",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Selecione o veterinário"
+                  defaultValue={undefined}
+                >
+                  {veterinarios.map((vet) => (
+                    <Option key={vet.id} value={vet.id}>
+                      {vet.nome}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Form>
           </Modal>
