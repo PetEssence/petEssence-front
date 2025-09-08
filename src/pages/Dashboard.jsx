@@ -119,8 +119,8 @@ export default function Dashboard() {
       setPetVacinas(petVacinasData);
       const vaccineCount = {};
       petVacinasData.forEach((vac) => {
-        const vaccine = getVaccineName(vac.vaccineId);
-        vaccineCount[vaccine] = (vaccineCount[vaccine] || 0) + 1;
+        const vaccineName = getVaccineName(vac.idVacina);
+        vaccineCount[vaccineName] = (vaccineCount[vaccineName] || 0) + 1;
       });
 
       const vaccineArray = Object.entries(vaccineCount).map(
