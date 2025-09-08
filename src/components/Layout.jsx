@@ -7,6 +7,7 @@ import {
   MenuFoldOutlined,
   HomeOutlined,
   MenuUnfoldOutlined,
+  TagsOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -73,6 +74,12 @@ export default function AppLayout({ children }) {
       icon: <PawPrintIcon size={20} />,
       label: "Pets",
       onClick: () => navigate("/pet"),
+    },
+    {
+      key: "/marca",
+      icon: <TagsOutlined size={20} />,
+      label: "Marcas",
+      onClick: () => navigate("/marca"),
     },
     {
       key: "/vacina",

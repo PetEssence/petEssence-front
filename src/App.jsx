@@ -19,6 +19,7 @@ import PetMoreInfo from "./pages/Pet/PetMoreInfo";
 import Vacina from "./pages/Vacina";
 import PetVacinas from "./pages/Pet/PetVacinas";
 import PetVermifugo from "./pages/Pet/PetVermifugo";
+import Marca from "./pages/Marca";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -116,6 +117,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Vacina />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/marca"
+                element={
+                  <ProtectedRoute>
+                    <Marca />
                   </ProtectedRoute>
                 }
               />
