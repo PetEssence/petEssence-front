@@ -30,6 +30,7 @@ import PetCard from "../../components/PetCard";
 
 export default function PetVermifugo() {
   const [vermifugos, setVermifugos] = useState([]);
+  const [marcas, setMarcas] = useState([]);
   const { petId } = useParams();
 
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,7 @@ export default function PetVermifugo() {
   const [editingVermifugo, setEditingVermifugo] = useState(null);
   const [form] = Form.useForm();
   const vermifugoCollectionRef = collection(db, "vermifugo");
+  const marcaCollectionRef = collection(db, "marca");
 
   const vermifugoOptions = [
     { value: "Antiparasitário", label: "Antiparasitário" },
@@ -48,10 +50,11 @@ export default function PetVermifugo() {
   ];
 
   useEffect(() => {
-    loadVermifugo();
+    listarVermifugo();
+    listarMarcas();
   }, []);
 
-  const loadVermifugo = async () => {
+  const listarVermifugo = async () => {
     setLoading(true);
     try {
       const q = query(vermifugoCollectionRef, where("petId", "==", petId));
@@ -61,6 +64,16 @@ export default function PetVermifugo() {
       message.error("Erro ao carregar os vermífugos pet");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const listarMarcas = async () => {
+    try {
+      const q = query(marcaCollectionRef, where("ativo", "==", true));
+      const data = await getDocs(q);
+      setMarcas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    } catch (error) {
+      message.error("Erro ao carregar as marcas");
     }
   };
 
@@ -83,7 +96,7 @@ export default function PetVermifugo() {
     setIsModalVisible(true);
   };
 
-  const handleModalOk = async () => {
+  const editar = async () => {
     try {
       const values = await form.validateFields();
       const formattedValues = {
@@ -95,14 +108,14 @@ export default function PetVermifugo() {
         petId: petId,
       };
       if (editingVermifugo) {
-        const vermifugoDoc = doc(vermifugoCollectionRef, editingVermifugo.id)
+        const vermifugoDoc = doc(vermifugoCollectionRef, editingVermifugo.id);
         const updatedData = vermifugos.map((vermifugo) =>
           vermifugo.id === editingVermifugo.id
             ? { ...vermifugo, ...values }
             : vermifugo
         );
         setVermifugos(updatedData);
-        await updateDoc(vermifugoDoc, formattedValues)
+        await updateDoc(vermifugoDoc, formattedValues);
         message.success("Vermífugação atualizada com sucesso!");
       } else {
         const docRef = await addDoc(vermifugoCollectionRef, {
@@ -126,7 +139,7 @@ export default function PetVermifugo() {
     }
   };
 
-  const handleActiveStatusVermifugacao = (id, ativo) => {
+  const ativarInativar = (id, ativo) => {
     Modal.confirm({
       title: `Confirmar ${ativo ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
@@ -247,7 +260,7 @@ export default function PetVermifugo() {
           <Button
             type="text"
             onClick={() =>
-              handleActiveStatusVermifugacao(record.id, record.ativo)
+              ativarInativar(record.id, record.ativo)
             }
           >
             {record.ativo == true ? "Desativar" : "Ativar"}
@@ -283,7 +296,7 @@ export default function PetVermifugo() {
             dataSource={vermifugos}
             rowKey="id"
             loading={loading}
-            locale={{ emptyText: "Não há registros."}}
+            locale={{ emptyText: "Não há registros." }}
           />
           <Modal
             title={
@@ -292,42 +305,69 @@ export default function PetVermifugo() {
                 : "Cadastrar Vermifugação"
             }
             open={isModalVisible}
-            onOk={handleModalOk}
+            onOk={editar}
             okText="Confirmar"
             cancelText="Cancelar"
             onCancel={() => setIsModalVisible(false)}
             width={600}
           >
             <Form form={form} layout="vertical" className="mt-4">
-              <Form.Item
-                label="Data da aplicação"
-                name="dataAplicacao"
-                className="w-3/6"
-                rules={[
-                  {
-                    required: true,
-                    message: "Por favor, insira a data de aplicação!",
-                  },
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      if (value.isAfter(dayjs())) {
-                        return Promise.reject("A data não pode ser no futuro!");
-                      }
-                      return Promise.resolve();
+              <div className="w-full flex gap-8 justify-between">
+                <Form.Item
+                  label="Data da aplicação"
+                  name="dataAplicacao"
+                  className="w-3/6"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, insira a data de aplicação!",
                     },
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="DD/MM/YYYY"
-                  style={{ width: "100%" }}
-                  placeholder="Selecione uma data"
-                  disabledDate={(current) =>
-                    current && current > dayjs().endOf("day")
-                  }
-                />
-              </Form.Item>
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        if (value.isAfter(dayjs())) {
+                          return Promise.reject(
+                            "A data não pode ser no futuro!"
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    style={{ width: "100%" }}
+                    placeholder="Selecione uma data"
+                    disabledDate={(current) =>
+                      current && current > dayjs().endOf("day")
+                    }
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label="Marca"
+                  className="w-3/6"
+                  name="idMarca"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, selecione a marca!",
+                    },
+                  ]}
+                >
+                  <Select
+                    placeholder="Selecione a marca"
+                    defaultValue={undefined}
+                  >
+                    {marcas.map((marca) => (
+                      <Option key={marca.id} value={marca.id}>
+                        {marca.nome}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </div>
               <Form.Item
                 label="Peso do pet"
                 name="peso"

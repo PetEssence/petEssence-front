@@ -34,6 +34,7 @@ export default function PetVacinas() {
   const [petVacinas, setPetVacinas] = useState([]);
   const [vacinas, setVacinas] = useState([]);
   const [veterinarios, setVeterinarios] = useState([]);
+  const [marcas, setMarcas] = useState([]);
   const { petId } = useParams();
 
   const [loading, setLoading] = useState(false);
@@ -43,11 +44,13 @@ export default function PetVacinas() {
   const vacinaCollectionRef = collection(db, "vacina");
   const vacinasAplicadasCollectionRef = collection(db, "vacinasAplicadas");
   const usuarioCollectionRef = collection(db, "usuario");
+  const marcaCollectionRef = collection(db, "marca");
 
   useEffect(() => {
     loadPetVacinas();
     loadVacinas();
     listarUsuarios();
+    listarMarcas();
   }, []);
 
   const loadPetVacinas = async () => {
@@ -79,6 +82,16 @@ export default function PetVacinas() {
       message.error("Erro ao carregar os veterinarios");
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const listarMarcas = async () => {
+    try {
+      const q = query(marcaCollectionRef, where("ativo", "==", true));
+      const data = await getDocs(q);
+      setMarcas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    } catch (error) {
+      message.error("Erro ao carregar as marcas");
     }
   };
 
@@ -323,25 +336,53 @@ export default function PetVacinas() {
             width={600}
           >
             <Form form={form} layout="vertical" className="mt-4">
-              <Form.Item
-                label="Vacina"
-                className="w-3/6"
-                name="idVacina"
-                rules={[
-                  { required: true, message: "Por favor, selecione a vacina!" },
-                ]}
-              >
-                <Select
-                  placeholder="Selecione a Vacina"
-                  defaultValue={undefined}
+              <div className="w-full flex gap-8 justify-between">
+                <Form.Item
+                  label="Vacina"
+                  className="w-3/6"
+                  name="idVacina"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, selecione a vacina!",
+                    },
+                  ]}
                 >
-                  {vacinas.map((vacina) => (
-                    <Option key={vacina.id} value={vacina.id}>
-                      {vacina.nome}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
+                  <Select
+                    placeholder="Selecione a Vacina"
+                    defaultValue={undefined}
+                  >
+                    {vacinas.map((vacina) => (
+                      <Option key={vacina.id} value={vacina.id}>
+                        {vacina.nome}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
+                  label="Marca"
+                  className="w-3/6"
+                  name="idMarca"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, selecione a marca!",
+                    },
+                  ]}
+                >
+                  <Select
+                    placeholder="Selecione a marca"
+                    defaultValue={undefined}
+                  >
+                    {marcas.map((marca) => (
+                      <Option key={marca.id} value={marca.id}>
+                        {marca.nome}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </div>
               <div className="w-full flex gap-8 justify-between">
                 <Form.Item
                   label="Data da aplicação"
