@@ -105,7 +105,6 @@ export default function PetVermifugo() {
         dataAplicacao: values.dataAplicacao
           ? values.dataAplicacao.format("YYYY-MM-DD")
           : null,
-        petId: petId,
       };
       if (editingVermifugo) {
         const vermifugoDoc = doc(vermifugoCollectionRef, editingVermifugo.id);

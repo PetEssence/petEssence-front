@@ -8,6 +8,7 @@ import {
   HomeOutlined,
   MenuUnfoldOutlined,
   TagsOutlined,
+  CalendarOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -86,6 +87,12 @@ export default function AppLayout({ children }) {
       icon: <SyringeIcon size={20} />,
       label: "Vacinas",
       onClick: () => navigate("/vacina"),
+    },
+    {
+      key: "/atendimento",
+      icon: <CalendarOutlined size={20} />,
+      label: "Atendimentos",
+      onClick: () => navigate("/atendimento"),
     },
   ];
 
