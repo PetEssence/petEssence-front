@@ -27,6 +27,7 @@ import {
 import { db } from "../config/firebase";
 import InputMask from "react-input-mask";
 import dayjs from "dayjs";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Usuario() {
   const [usuario, setUsuario] = useState([]);
@@ -36,7 +37,9 @@ export default function Usuario() {
   const [editingData, setEditingUsuario] = useState(null);
   const [form] = Form.useForm();
   const usuarioCollectionRef = collection(db, "usuario");
-  const usuarioCargo = Form.useWatch('cargo', form);
+  const usuarioCargo = Form.useWatch("cargo", form);
+
+  const { register } = useAuth();
 
   useEffect(() => {
     loadUsuarios();
@@ -55,6 +58,24 @@ export default function Usuario() {
       setLoading(false);
     }
   };
+
+  const randomPassword = () => {
+    const upperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowerCaseLetters = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*()_+[]{}<>?/|";
+
+    const allChars =
+      upperCaseLetters + lowerCaseLetters + numbers + symbols;
+
+    let password = "";
+
+    for (let i = 0; i < 32; i++) {
+      const randomIndex = Math.floor(Math.random() * allChars.length);
+      password += allChars[randomIndex];
+    }
+    return password;
+  }
 
   const handleAddUsuarios = () => {
     setEditingUsuario(null);
@@ -127,9 +148,7 @@ export default function Usuario() {
       const formattedValues = {
         ...values,
         complemento: values.complemento || "",
-        dataNasc: values.dataNasc
-          ? values.dataNasc.format("YYYY-MM-DD")
-          : null,
+        dataNasc: values.dataNasc ? values.dataNasc.format("YYYY-MM-DD") : null,
         ativo: true,
       };
 
@@ -147,7 +166,11 @@ export default function Usuario() {
           ...formattedValues,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
-
+        await register(
+          formattedValues.email,
+          randomPassword(),
+          formattedValues.nome
+        );
         setUsuario([
           ...usuario,
           {
@@ -257,7 +280,9 @@ export default function Usuario() {
           {record.cargo === "funcionario" && (
             <Tag color="blue-inverse">Funcionário</Tag>
           )}
-          {record.cargo === "cliente" && <Tag color="gold-inverse">Cliente</Tag>}
+          {record.cargo === "cliente" && (
+            <Tag color="gold-inverse">Cliente</Tag>
+          )}
           {record.cargo === "veterinario" && (
             <Tag color="green-inverse">Veterinário</Tag>
           )}
@@ -536,7 +561,7 @@ export default function Usuario() {
                 />
               </Form.Item>
             </div>
-            <Form.Item label="Complemento" name="complement">
+            <Form.Item label="Complemento" name="complemento">
               <Input />
             </Form.Item>
             <Divider plain={false}>Permissão</Divider>
@@ -562,28 +587,29 @@ export default function Usuario() {
               <Form.Item
                 label="CRMV"
                 name="crmv"
-               rules={[
-                { required: true, message: "Por favor, insira o CRMV!" },
-                {
-                  validator: async (_, value) => {
-                    if (!value || value.trim() === "") return Promise.resolve();
-                    const q = query(
-                      usuarioCollectionRef,
-                      where("crmv", "==", value)
-                    );
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                      const existingDoc = querySnapshot.docs[0];
-                      if (editingData && existingDoc.id === editingData.id) {
+                rules={[
+                  { required: true, message: "Por favor, insira o CRMV!" },
+                  {
+                    validator: async (_, value) => {
+                      if (!value || value.trim() === "")
                         return Promise.resolve();
+                      const q = query(
+                        usuarioCollectionRef,
+                        where("crmv", "==", value)
+                      );
+                      const querySnapshot = await getDocs(q);
+
+                      if (!querySnapshot.empty) {
+                        const existingDoc = querySnapshot.docs[0];
+                        if (editingData && existingDoc.id === editingData.id) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject("Este CRMV já está cadastrado!");
                       }
-                      return Promise.reject("Este CRMV já está cadastrado!");
-                    }
-                    return Promise.resolve();
+                      return Promise.resolve();
+                    },
                   },
-                },
-              ]}
+                ]}
               >
                 <Input />
               </Form.Item>

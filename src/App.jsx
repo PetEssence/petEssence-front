@@ -22,10 +22,10 @@ import PetVermifugo from "./pages/Pet/PetVermifugo";
 import Marca from "./pages/Marca";
 import Atendimento from "./pages/Atendimento";
 
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+const RotasProtegidas = ({ children }) => {
+  const { usuario, carregando } = useAuth();
 
-  if (loading) {
+  if (carregando) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         Carregando...
@@ -33,13 +33,13 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  return user ? <>{children}</> : <Navigate to="/login" />;
+  return usuario ? <>{children}</> : <Navigate to="/login" />;
 }
 
-function PublicRoute({ children }) {
-  const { user, loading } = useAuth();
+const RotasPublicas = ({ children }) => {
+  const { usuario, carregando } = useAuth();
 
-  if (loading) {
+  if (carregando) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         Carregando...
@@ -47,7 +47,7 @@ function PublicRoute({ children }) {
     );
   }
 
-  return !user ? <>{children}</> : <Navigate to="/login" />;
+  return !usuario ? <>{children}</> : <Navigate to="/login" />;
 }
 
 export default function App() {
@@ -68,97 +68,97 @@ export default function App() {
               <Route
                 path="/login"
                 element={
-                  <PublicRoute>
+                  <RotasPublicas>
                     <Login />
-                  </PublicRoute>
+                  </RotasPublicas>
                 }
               />
               <Route
                 path="/especie"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Especie />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Dashboard />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/raca"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Raca />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/usuario"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Usuario />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/pet"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Pet />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/vacina"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Vacina />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/marca"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Marca />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/atendimento"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <Atendimento />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/:petId"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <PetMoreInfo />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/:petId/vacinas"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <PetVacinas />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route
                 path="/:petId/vermifugos"
                 element={
-                  <ProtectedRoute>
+                  <RotasProtegidas>
                     <PetVermifugo />
-                  </ProtectedRoute>
+                  </RotasProtegidas>
                 }
               />
               <Route path="/" element={<Navigate to="/dashboard" />} />

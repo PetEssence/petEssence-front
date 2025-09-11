@@ -1,76 +1,90 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   updateProfile,
-} from "firebase/auth"
-import { auth } from "../config/firebase"
-import { message } from "antd"
+  sendPasswordResetEmail,
+} from "firebase/auth";
+import { auth } from "../config/firebase";
+import { message } from "antd";
 
-export const AuthContext = createContext(undefined)
+export const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [usuario, setUsuario] = useState(null);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user)
-      setLoading(false)
-    })
+      setUsuario(user);
+      setCarregando(false);
+    });
 
-    return unsubscribe
-  }, [])
+    return unsubscribe;
+  }, []);
 
   const login = async (email, password) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      message.success("Login realizado com sucesso!")
+      await signInWithEmailAndPassword(auth, email, password);
+      message.success("Login realizado com sucesso!");
     } catch (error) {
-      message.error("Erro ao fazer login: " + error.message)
-      throw error
+      message.error("Erro ao fazer login: E-mail ou senha incorretos ");
+      throw error;
     }
-  }
+  };
 
-  const register = async (email, password, displayName) => {
+  const redefinirSenha = async (email) => {
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password)
-      await updateProfile(user, { displayName })
-      message.success("Conta criada com sucesso!")
+      await sendPasswordResetEmail(auth, email);
+      message.success("E-mail de redefinição de senha enviado!");
     } catch (error) {
-      message.error("Erro ao criar conta: " + error.message)
-      throw error
+      message.error("Erro ao enviar e-mail: " + error.message);
+      throw error;
     }
-  }
+  };
+
+  const registrar = async (email, senha, nome) => {
+    try {
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        senha
+      );
+      await updateProfile(user, { displayName: nome });
+    } catch (error) {
+      message.error("Erro ao criar conta: " + error.message);
+      throw error;
+    }
+  };
 
   const logout = async () => {
     try {
-      await signOut(auth)
-      message.success("Logout realizado com sucesso!")
+      await signOut(auth);
+      message.success("Logout realizado com sucesso!");
     } catch (error) {
-      message.error("Erro ao fazer logout: " + error.message)
-      throw error
+      message.error("Erro ao fazer logout: " + error.message);
+      throw error;
     }
-  }
+  };
 
   const value = {
-    user,
-    loading,
+    usuario,
+    carregando,
     login,
-    register,
+    registrar,
     logout,
-  }
+    redefinirSenha
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+  const contexto = useContext(AuthContext);
+  if (contexto === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return contexto;
 }
-
