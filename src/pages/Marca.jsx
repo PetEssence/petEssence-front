@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Card, Button, Input, Space, Modal, Form, message, Tag } from "antd";
+import { Table, Card, Button, Input, Space, Modal, Form, message, Tag, Radio } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
 import {
@@ -131,6 +131,19 @@ export default function Marca() {
       ),
     },
     {
+      title: "Origem",
+      dataIndex: "origem",
+      width: 800,
+      key: "origem",
+      render: (_, record) => (
+        <div className="flex items-center space-x-3">
+          <div>
+            <div className="text-gray-500 text-sm">{record.origem}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
       title: "Status",
       key: "activeStatus",
       align: "center",
@@ -219,6 +232,15 @@ export default function Marca() {
               rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item
+              label="Origem"
+              name="origem"
+              rules={[{ required: true, message: "Por favor, selecione a origem!" }]}
+            >
+              <Radio.Group
+                options={[{value: 'Internacional', label: "Internacional"}, {value: "Nacional", label:"Nacional"}]}
+              />
             </Form.Item>
           </Form>
         </Modal>
