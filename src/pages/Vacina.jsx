@@ -5,7 +5,6 @@ import {
   Button,
   Input,
   Space,
-  Tag,
   Modal,
   Form,
   message,
@@ -24,86 +23,87 @@ import { db } from "../config/firebase";
 
 export default function Vacina() {
   const [vacina, setVacina] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingVacina, setEditingVacina] = useState(null);
+  const [carregando, setCarregando] = useState(false);
+  const [textoFiltro, setTextoFiltro] = useState("");
+  const [modalVisivel, setModalVisivel] = useState(false);
+  const [editandoVacina, setEditandoVacina] = useState(null);
   const [form] = Form.useForm();
   const vacinaCollectionRef = collection(db, "vacina");
 
-  const optionsSelectReaplicationPeriod = [
-    { value: "anual", label: "Anual" },
-    { value: "biannual", label: "Semestral" },
-    { value: "monthly", label: "Mensal" },
-    { value: "unique", label: "Dose Única" },
+  const opcoesSelectPeriodoReaplicacao = [
+    { value: "Anual", label: "Anual" },
+    { value: "Semestral", label: "Semestral" },
+    { value: "Mensal", label: "Mensal" },
+    { value: "Dose Única", label: "Dose Única" },
   ];
 
   useEffect(() => {
-    loadVacinas();
+    listarVacinas();
   }, []);
 
-  const loadVacinas = async () => {
-    setLoading(true);
+  const listarVacinas = async () => {
+    setCarregando(true);
     try {
-      const vacinaData = await getDocs(vacinaCollectionRef);
-      setVacina(vacinaData.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const data = await getDocs(vacinaCollectionRef);
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+      setVacina(dataDoc);
     } catch (error) {
       message.error("Erro ao carregar vacinas");
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
-  const handleAddVacina = () => {
-    setEditingVacina(null);
+  const abrirModalCadastro = () => {
+    setEditandoVacina(null);
     form.resetFields();
-    setIsModalVisible(true);
+    setModalVisivel(true);
   };
 
-  const handleEditVacina = (vacina) => {
-    setEditingVacina(vacina);
+  const abrirModalEditar = (vacina) => {
+    setEditandoVacina(vacina);
     form.setFieldsValue(vacina);
-    setIsModalVisible(true);
+    setModalVisivel(true);
   };
 
-  const handleModalOk = async () => {
+  const salvarVacina = async () => {
     try {
-      const values = await form.validateFields();
-      const formattedValues = {
-        ...values,
+      const dados = await form.validateFields();
+      const dadosFormatados = {
+        ...dados,
       };
-      if (editingVacina) {
-        const vacinaDoc = doc(vacinaCollectionRef, editingVacina.id);
-        const updatedVacina = vacina.map((vacina) =>
-          vacina.id === editingVacina.id ? { ...vacina, ...values } : vacina
+      if (editandoVacina) {
+        const vacinaDoc = doc(vacinaCollectionRef, editandoVacina.id);
+        const vacinaEditada = vacina.map((vacina) =>
+          vacina.id === editandoVacina.id ? { ...vacina, ...dados } : vacina
         );
-        setVacina(updatedVacina);
-        await updateDoc(vacinaDoc, formattedValues);
+        setVacina(vacinaEditada);
+        await updateDoc(vacinaDoc, dadosFormatados);
         message.success("Vacina atualizada com sucesso!");
       } else {
         const docRef = await addDoc(vacinaCollectionRef, {
-          ...formattedValues,
+          ...dadosFormatados,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
         setVacina([
           ...vacina,
           {
             id: docRef.id,
-            ...formattedValues,
+            ...dadosFormatados,
             dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Vacina adicionada com sucesso!");
       }
-      setIsModalVisible(false);
+      setModalVisivel(false);
       form.resetFields();
     } catch (error) {
       console.error("Erro na validação:", error);
     }
   };
 
-  const filteredVacinas = vacina.filter((vacina) =>
-    vacina.nome.toLowerCase().includes(searchText.toLowerCase())
+  const vacinasFiltradas = vacina.filter((vacina) =>
+    vacina.nome.toLowerCase().includes(textoFiltro.toLowerCase())
   );
 
   const columns = [
@@ -139,7 +139,7 @@ export default function Vacina() {
       width: 800,
       key: "periodoReaplicacao",
       render: (_, record) => {
-        const option = optionsSelectReaplicationPeriod.find(
+        const option = opcoesSelectPeriodoReaplicacao.find(
           (opt) => opt.value === record.periodoReaplicacao
         );
         return (
@@ -153,7 +153,7 @@ export default function Vacina() {
     },
     {
       title: "Ações",
-      key: "actions",
+      key: "acoes",
       width: 50,
       align: "center",
       render: (_, record) => (
@@ -161,7 +161,7 @@ export default function Vacina() {
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleEditVacina(record)}
+            onClick={() => abrirModalEditar(record)}
           />
         </Space>
       ),
@@ -178,7 +178,7 @@ export default function Vacina() {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAddVacina}
+            onClick={abrirModalCadastro}
           >
             Cadastrar vacina
           </Button>
@@ -189,28 +189,27 @@ export default function Vacina() {
             <Input
               placeholder="Buscar vacina..."
               prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              value={textoFiltro}
+              onChange={(e) => setTextoFiltro(e.target.value)}
               className="max-w-sm"
             />
           </div>
 
           <Table
             columns={columns}
-            dataSource={filteredVacinas}
+            dataSource={vacinasFiltradas}
             rowKey="id"
-            loading={loading}
-            locale={{ emptyText: "Não há registros."}}
+            loading={carregando}
           />
         </Card>
 
         <Modal
-          title={editingVacina ? "Editar vacina" : "Cadastrar vacina"}
-          open={isModalVisible}
-          onOk={handleModalOk}
+          title={editandoVacina ? "Editar vacina" : "Cadastrar vacina"}
+          open={modalVisivel}
+          onOk={salvarVacina}
           okText="Confirmar"
           cancelText="Cancelar"
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={() => setModalVisivel(false)}
           width={600}
         >
           <Form form={form} layout="vertical" className="mt-4">
@@ -240,7 +239,7 @@ export default function Vacina() {
                 },
               ]}
             >
-              <Select options={optionsSelectReaplicationPeriod}></Select>
+              <Select options={opcoesSelectPeriodoReaplicacao}></Select>
             </Form.Item>
           </Form>
         </Modal>
