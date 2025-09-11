@@ -39,7 +39,7 @@ export default function Usuario() {
   const usuarioCollectionRef = collection(db, "usuario");
   const usuarioCargo = Form.useWatch("cargo", form);
 
-  const { register } = useAuth();
+  const { registrar } = useAuth();
 
   useEffect(() => {
     loadUsuarios();
@@ -166,7 +166,7 @@ export default function Usuario() {
           ...formattedValues,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
-        await register(
+        await registrar(
           formattedValues.email,
           randomPassword(),
           formattedValues.nome
@@ -516,7 +516,7 @@ export default function Usuario() {
             </div>
             <div className="w-full flex gap-8 justify-between">
               <Form.Item
-                label="logradouro"
+                label="Logradouro"
                 name="logradouro"
                 className="w-4/6"
                 rules={[
