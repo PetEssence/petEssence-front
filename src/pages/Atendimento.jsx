@@ -27,18 +27,18 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import dayjs from "dayjs";
-import { getNodeText } from "@testing-library/dom";
 
 export default function Atendimento() {
   const [atendimentos, setAtendimentos] = useState([]);
   const [veterinarios, setVeterinarios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [pets, setPets] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
   const [detalhesAtendimento, setDetalhesAtendimento] = useState(null);
-  const [ediiting, setEditing] = useState(null);
+  const [editando, setEditando] = useState(null);
   const [form] = Form.useForm();
+
   const atendimentoCollectionRef = collection(db, "atendimento");
   const usuarioCollectionRef = collection(db, "usuario");
   const petCollectionRef = collection(db, "pet");
@@ -50,14 +50,15 @@ export default function Atendimento() {
   }, []);
 
   const listarAtendimentos = async () => {
-    setLoading(true);
+    setCarregando(true);
     try {
       const data = await getDocs(atendimentoCollectionRef);
-      setAtendimentos(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setAtendimentos(dataDoc);
     } catch (error) {
       message.error("Erro ao carregar atendimentos");
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
@@ -75,15 +76,15 @@ export default function Atendimento() {
 
   const listarPets = async () => {
     try {
-      const q = query(petCollectionRef, where("ativo", "==", true));
       const data = await getDocs(petCollectionRef);
-      setPets(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setPets(dataDoc);
     } catch (error) {
       message.error("Erro ao carregar pets");
     }
   };
 
-  const dateCellRender = (value) => {
+  const celulaDataRender = (value) => {
     const atendimentosDoDia = atendimentos.filter(
       (item) => item.data === value.format("YYYY-MM-DD")
     );
@@ -110,17 +111,17 @@ export default function Atendimento() {
     );
   };
 
-  const handleAddAtendimento = () => {
-    setEditing(null);
+  const abrirModalCadastro = () => {
+    setEditando(null);
     form.resetFields();
-    setIsModalVisible(true);
+    setModalVisivel(true);
   };
 
-  const ativarInativar = (id, activeStatus) => {
+  const ativarInativar = (id, ativoStatus) => {
     Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
+      title: `Confirmar ${ativoStatus ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
+        ativoStatus ? "desativar" : "ativar"
       } este atendimento?`,
       okText: "Confirmar",
       okType: "primary",
@@ -131,13 +132,13 @@ export default function Atendimento() {
       onOk: async () => {
         try {
           const atendimentoDoc = doc(atendimentoCollectionRef, id);
-          const newStatus = { ativo: !activeStatus };
-          await updateDoc(atendimentoDoc, newStatus);
-          const updatedData = atendimentos.map((item) =>
-            item.id === id ? { ...item, ativo: !activeStatus } : item
+          const novoStatus = { ativo: !ativoStatus };
+          await updateDoc(atendimentoDoc, novoStatus);
+          const dadoEditado = atendimentos.map((item) =>
+            item.id === id ? { ...item, ativo: !ativoStatus } : item
           );
-          setDetalhesAtendimento(updatedData);
-          setAtendimentos(updatedData);
+          setDetalhesAtendimento(dadoEditado);
+          setAtendimentos(dadoEditado);
           setDetalhesAtendimento(null);
           message.success("Atendimento atualizado com sucesso!");
         } catch (error) {
@@ -146,9 +147,10 @@ export default function Atendimento() {
       },
     });
   };
-  const handleEditAtendimento = (atendimento) => {
+  
+  const abrirModalEditar = (atendimento) => {
     setDetalhesAtendimento(null);
-    setEditing(atendimento);
+    setEditando(atendimento);
     form.setFieldsValue({
       ...atendimento,
       data: atendimento.data ? dayjs(atendimento.data) : null,
@@ -160,67 +162,129 @@ export default function Atendimento() {
             ]
           : [],
     });
-    setIsModalVisible(true);
+    setModalVisivel(true);
   };
+
+  const tempoStringParaMinutos = (timeStr) => {
+    if (!timeStr) return null;
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const dayjsParaMinutos = (d) => {
+    if (!d) return null;
+    return d.hour() * 60 + d.minute();
+  };
+
+  const verificarDisponibilidade = (
+    vetId,
+    dataStr,
+    minutoInicial,
+    minutoFinal,
+    idIgnorado = null
+  ) => {
+    if (!vetId || !dataStr || minutoInicial == null || minutoFinal == null) return true;
+
+    const conflito = atendimentos.some((item) => {
+      if (idIgnorado && item.id === idIgnorado) return false;
+
+      if (item.veterinario !== vetId) return false;
+      if (item.data !== dataStr) return false;
+
+      if (!item.horarioInicio || !item.horarioFinal) return false;
+      if (item.ativo === false) return false;
+
+      const itemStart = tempoStringParaMinutos(item.horarioInicio);
+      const itemEnd = tempoStringParaMinutos(item.horarioFinal);
+      if (itemStart == null || itemEnd == null) return false;
+
+      return minutoInicial < itemEnd && itemStart < minutoFinal;
+    });
+
+    return !conflito;
+  };
+
   const editarAtendimento = async () => {
     try {
-      const values = await form.validateFields();
-      const formattedValues = {
-        ...values,
-        horarioInicio: values.horario
-          ? values.horario[0].format("HH:mm")
+      const dados = await form.validateFields();
+      const dadosFormatados = {
+        ...dados,
+        horarioInicio: dados.horario
+          ? dados.horario[0].format("HH:mm")
           : null,
-        horarioFinal: values.horario ? values.horario[1].format("HH:mm") : null,
-        data: values.data ? values.data.format("YYYY-MM-DD") : null,
+        horarioFinal: dados.horario ? dados.horario[1].format("HH:mm") : null,
+        data: dados.data ? dados.data.format("YYYY-MM-DD") : null,
         ativo: true,
-        descricao: values.descricao ? values.descricao : null,
+        descricao: dados.descricao ? dados.descricao : null,
       };
-      delete formattedValues.horario;
 
-      if (ediiting) {
-        const atendimentoDoc = doc(atendimentoCollectionRef, ediiting.id);
-        const updatedAtendimentos = atendimentos.map((atendimento) =>
-          atendimento.id === ediiting.id
-            ? { ...atendimento, ...formattedValues }
+      delete dadosFormatados.horario;
+      
+      const minutoInicio = dados.horario ? dayjsParaMinutos(dados.horario[0]) : null;
+      const minutoFinal = dados.horario ? dayjsParaMinutos(dados.horario[1]) : null;
+      const dataStr = dados.data ? dados.data.format("YYYY-MM-DD") : null;
+      const vetId = dados.veterinario;
+      const idIgnorado = editando ? editando.id : null;
+
+      const disponivel = verificarDisponibilidade(
+        vetId,
+        dataStr,
+        minutoInicio,
+        minutoFinal,
+        idIgnorado
+      );
+
+      if (!disponivel) {
+        message.error(
+          "Veterinário indisponível nesse horário. Escolha outro horário ou veterinário."
+        );
+        return;
+      }
+
+      if (editando) {
+        const atendimentoDoc = doc(atendimentoCollectionRef, editando.id);
+        const atendimentosEditados = atendimentos.map((atendimento) =>
+          atendimento.id === editando.id
+            ? { ...atendimento, ...dadosFormatados }
             : atendimento
         );
-        setAtendimentos(updatedAtendimentos);
-        await updateDoc(atendimentoDoc, formattedValues);
+        setAtendimentos(atendimentosEditados);
+        await updateDoc(atendimentoDoc, dadosFormatados);
         message.success("Atendimento atualizado com sucesso!");
       } else {
         const docRef = await addDoc(atendimentoCollectionRef, {
-          ...formattedValues,
+          ...dadosFormatados,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
         setAtendimentos([
           ...atendimentos,
           {
             id: docRef.id,
-            ...formattedValues,
+            ...dadosFormatados,
             dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Atendimento adicionado com sucesso!");
       }
-      setIsModalVisible(false);
+      setModalVisivel(false);
       form.resetFields();
     } catch (error) {
       console.error("Erro na validação:", error);
     }
   };
 
-  const getUserName = (ownerId) => {
-    const owner = usuarios.find((u) => u.id === ownerId);
-    return owner ? owner.nome : "Dono não encontrado";
+  const pegaNomeUsuario = (ownerId) => {
+    const tutor = usuarios.find((u) => u.id === ownerId);
+    return tutor ? tutor.nome : "Dono não encontrado";
   };
-  const getPetName = (petId) => {
+  const pegaNomePet = (petId) => {
     const pet = pets.find((p) => p.id === petId);
     return pet ? pet.nome : "Pet não encontrado";
   };
 
-  const getOwners = (petId) => {
+  const pegaTutoresAnimal = (petId) => {
     const pet = pets.find((p) => p.id === petId);
-    return pet.tutorAnimal?.map((t) => getUserName(t));
+    return pet.tutorAnimal?.map((t) => pegaNomeUsuario(t));
   };
 
   return (
@@ -233,14 +297,14 @@ export default function Atendimento() {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAddAtendimento}
+            onClick={abrirModalCadastro}
           >
             Cadastrar Atendimento
           </Button>
         </div>
 
-        <Card loading={loading}>
-          <Calendar cellRender={dateCellRender} />
+        <Card loading={carregando}>
+          <Calendar cellRender={celulaDataRender} />
         </Card>
         <Modal
           title="Detalhes do Atendimento"
@@ -261,7 +325,7 @@ export default function Atendimento() {
             <Button
               key="edit"
               type="primary"
-              onClick={() => handleEditAtendimento(detalhesAtendimento)}
+              onClick={() => abrirModalEditar(detalhesAtendimento)}
             >
               Editar
             </Button>,
@@ -271,10 +335,10 @@ export default function Atendimento() {
             <div>
               <div className="flex gap-4">
                 <p>
-                  <b>Pet:</b> {getPetName(detalhesAtendimento.pet)}
+                  <b>Pet:</b> {pegaNomePet(detalhesAtendimento.pet)}
                 </p>
                 <p>
-                  <b>Tutor(es):</b> {getOwners(detalhesAtendimento.pet)}
+                  <b>Tutor(es):</b> {pegaTutoresAnimal(detalhesAtendimento.pet)}
                 </p>
               </div>
               <p>
@@ -282,7 +346,7 @@ export default function Atendimento() {
               </p>
               <p>
                 <b>Veterinário:</b>{" "}
-                {getUserName(detalhesAtendimento.veterinario)}
+                {pegaNomeUsuario(detalhesAtendimento.veterinario)}
               </p>
               <div className="flex gap-4">
                 <p>
@@ -308,12 +372,12 @@ export default function Atendimento() {
           )}
         </Modal>
         <Modal
-          title={ediiting ? "Editar Atendimento" : "Cadastrar Atendimento"}
-          open={isModalVisible}
+          title={editando ? "Editar Atendimento" : "Cadastrar Atendimento"}
+          open={modalVisivel}
           onOk={editarAtendimento}
           okText="Confirmar"
           cancelText="Cancelar"
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={() => setModalVisivel(false)}
           width={600}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
@@ -330,7 +394,7 @@ export default function Atendimento() {
               <Select placeholder="Selecione o pet">
                 {pets.map((pet) => (
                   <Select.Option key={pet.id} value={pet.id}>
-                    {pet.nome} ({pet.tutorAnimal.map((id) => getUserName(id))})
+                    {pet.nome} ({pet.tutorAnimal.map((id) => pegaNomeUsuario(id))})
                   </Select.Option>
                 ))}
               </Select>
