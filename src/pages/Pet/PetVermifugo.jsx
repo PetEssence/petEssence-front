@@ -31,14 +31,16 @@ import PetCard from "../../components/PetCard";
 export default function PetVermifugo() {
   const [vermifugos, setVermifugos] = useState([]);
   const [marcas, setMarcas] = useState([]);
-  const { petId } = useParams();
+  const [mostrarDataReaplicacao, setMostrarDataReaplicacao] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
+  const [editando, setEditando] = useState(null);
 
-  const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingVermifugo, setEditingVermifugo] = useState(null);
+  const { petId } = useParams();
   const [form] = Form.useForm();
   const vermifugoCollectionRef = collection(db, "vermifugo");
   const marcaCollectionRef = collection(db, "marca");
+  const valorDataAplicacaoForm = Form.useWatch("dataAplicacao", form);
 
   const vermifugoOptions = [
     { value: "Antiparasitário", label: "Antiparasitário" },
@@ -55,15 +57,16 @@ export default function PetVermifugo() {
   }, []);
 
   const listarVermifugo = async () => {
-    setLoading(true);
+    setCarregando(true);
     try {
-      const q = query(vermifugoCollectionRef, where("petId", "==", petId));
+      const q = query(vermifugoCollectionRef, where("pet", "==", petId));
       const data = await getDocs(q);
-      setVermifugos(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setVermifugos(dataDoc);
     } catch (error) {
       message.error("Erro ao carregar os vermífugos pet");
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
@@ -71,68 +74,74 @@ export default function PetVermifugo() {
     try {
       const q = query(marcaCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
-      setMarcas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setMarcas(dataDoc);
     } catch (error) {
       message.error("Erro ao carregar as marcas");
     }
   };
 
-  const handleAddVermifugo = () => {
-    setEditingVermifugo(null);
+  const abrirModalCadastro = () => {
+    setEditando(null);
     form.resetFields();
-    setIsModalVisible(true);
+    setModalVisivel(true);
+    setMostrarDataReaplicacao(false);
   };
 
-  const handleEditVermifugo = (vermifugo) => {
-    setEditingVermifugo(vermifugo);
+  const abrirModalEditar = (vermifugo) => {
+    setEditando(vermifugo);
     const formData = {
       ...vermifugo,
       dataAplicacao: vermifugo.dataAplicacao
         ? dayjs(vermifugo.dataAplicacao)
         : null,
+      dataReaplicacao: vermifugo.dataReaplicacao
+        ? dayjs(vermifugo.dataReaplicacao)
+        : null,
     };
     form.setFieldsValue(formData);
-
-    setIsModalVisible(true);
+    setModalVisivel(true);
   };
 
-  const editar = async () => {
+  const salvarVermifugo = async () => {
     try {
-      const values = await form.validateFields();
-      const formattedValues = {
-        ...values,
+      const dados = await form.validateFields();
+      const dadosFormatados = {
+        ...dados,
         ativo: true,
-        dataAplicacao: values.dataAplicacao
-          ? values.dataAplicacao.format("YYYY-MM-DD")
+        dataAplicacao: dados.dataAplicacao
+          ? dados.dataAplicacao.format("YYYY-MM-DD")
           : null,
+        dataReaplicacao: dados.dataReaplicacao ? dados.dataReaplicacao.format("YYYY-MM-DD") : null,
+        pet: petId
+
       };
-      if (editingVermifugo) {
-        const vermifugoDoc = doc(vermifugoCollectionRef, editingVermifugo.id);
-        const updatedData = vermifugos.map((vermifugo) =>
-          vermifugo.id === editingVermifugo.id
-            ? { ...vermifugo, ...values }
-            : vermifugo
+      if (editando) {
+        const vermifugoDoc = doc(vermifugoCollectionRef, editando.id);
+        const dadosEditados = vermifugos.map((vermifugo) =>
+          vermifugo.id === editando.id ? { ...vermifugo, ...dados } : vermifugo
         );
-        setVermifugos(updatedData);
-        await updateDoc(vermifugoDoc, formattedValues);
+        setVermifugos(dadosEditados);
+        await updateDoc(vermifugoDoc, dadosFormatados);
         message.success("Vermífugação atualizada com sucesso!");
       } else {
         const docRef = await addDoc(vermifugoCollectionRef, {
-          ...formattedValues,
+          ...dadosFormatados,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
         setVermifugos([
           ...vermifugos,
           {
-            ...formattedValues,
+            ...dadosFormatados,
             id: docRef.id,
             dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Vermifugação adicionada com sucesso!");
       }
-      setIsModalVisible(false);
+      setModalVisivel(false);
       form.resetFields();
+      setMostrarDataReaplicacao(false);
     } catch (error) {
       console.error("Erro na validação:", error);
     }
@@ -153,12 +162,12 @@ export default function PetVermifugo() {
       onOk: async () => {
         try {
           const vermifugoDoc = doc(vermifugoCollectionRef, id);
-          const newStatus = { ativo: !ativo };
-          await updateDoc(vermifugoDoc, newStatus);
-          const updatedData = vermifugos.map((item) =>
+          const novoStatus = { ativo: !ativo };
+          await updateDoc(vermifugoDoc, novoStatus);
+          const dadoEditado = vermifugos.map((item) =>
             item.id === id ? { ...item, ativo: !ativo } : item
           );
-          setVermifugos(updatedData);
+          setVermifugos(dadoEditado);
           message.success("Vermifugação atualizada com sucesso!");
         } catch (error) {
           message.error("Erro ao excluir Vermifugação ");
@@ -167,7 +176,15 @@ export default function PetVermifugo() {
     });
   };
 
-  const columns = [
+  useEffect(() => {
+    if (valorDataAplicacaoForm) {
+      const dataReaplicacao = dayjs(valorDataAplicacaoForm).add(365, "day");
+      setMostrarDataReaplicacao(true);
+      form.setFieldsValue({ dataReaplicacao });
+    }
+  }, [valorDataAplicacaoForm]);
+
+  const colunas = [
     {
       title: "Data da Aplicação",
       dataIndex: "dataAplicacao",
@@ -184,6 +201,28 @@ export default function PetVermifugo() {
             <div>
               <div className="text-gray-500 text-sm">
                 {formatDate(record.dataAplicacao)}
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+        {
+      title: "Data de reaplicação",
+      dataIndex: "dataReaplicacao",
+      width: 800,
+      key: "dataReaplicacao",
+      render: (_, record) => {
+        const formatDate = (value) => {
+          if (!value) return "-";
+          return dayjs(value).format("DD/MM/YYYY");
+        };
+
+        return (
+          <div className="flex items-center space-x-3">
+            <div>
+              <div className="text-gray-500 text-sm">
+                {formatDate(record.dataReaplicacao)}
               </div>
             </div>
           </div>
@@ -254,13 +293,11 @@ export default function PetVermifugo() {
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleEditVermifugo(record)}
+            onClick={() => abrirModalEditar(record)}
           />
           <Button
             type="text"
-            onClick={() =>
-              ativarInativar(record.id, record.ativo)
-            }
+            onClick={() => ativarInativar(record.id, record.ativo)}
           >
             {record.ativo == true ? "Desativar" : "Ativar"}
           </Button>
@@ -284,30 +321,25 @@ export default function PetVermifugo() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={handleAddVermifugo}
+              onClick={abrirModalCadastro}
             >
               Cadastrar Vermifugação
             </Button>
           </div>
 
           <Table
-            columns={columns}
+            columns={colunas}
             dataSource={vermifugos}
             rowKey="id"
-            loading={loading}
-            locale={{ emptyText: "Não há registros." }}
+            loading={carregando}
           />
           <Modal
-            title={
-              editingVermifugo
-                ? "Editar Vermifugação"
-                : "Cadastrar Vermifugação"
-            }
-            open={isModalVisible}
-            onOk={editar}
+            title={editando ? "Editar Vermifugação" : "Cadastrar Vermifugação"}
+            open={modalVisivel}
+            onOk={salvarVermifugo}
             okText="Confirmar"
             cancelText="Cancelar"
-            onCancel={() => setIsModalVisible(false)}
+            onCancel={() => setModalVisivel(false)}
             width={600}
           >
             <Form form={form} layout="vertical" className="mt-4">
@@ -343,11 +375,10 @@ export default function PetVermifugo() {
                     }
                   />
                 </Form.Item>
-
                 <Form.Item
                   label="Marca"
                   className="w-3/6"
-                  name="idMarca"
+                  name="marca"
                   rules={[
                     {
                       required: true,
@@ -367,6 +398,19 @@ export default function PetVermifugo() {
                   </Select>
                 </Form.Item>
               </div>
+              {mostrarDataReaplicacao && (
+                <Form.Item
+                  label="Data de reaplicação"
+                  name="dataReaplicacao"
+                  className="w-3/6"
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    style={{ width: "100%" }}
+                    placeholder="Selecione uma data"
+                  />
+                </Form.Item>
+              )}
               <Form.Item
                 label="Peso do pet"
                 name="peso"
