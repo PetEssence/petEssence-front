@@ -22,8 +22,6 @@ import {
   addDoc,
   updateDoc,
   doc,
-  where,
-  query,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import dayjs from "dayjs";
@@ -204,7 +202,7 @@ export default function Atendimento() {
     return !conflito;
   };
 
-  const editarAtendimento = async () => {
+  const salvarAtendimento = async () => {
     try {
       const dados = await form.validateFields();
       const dadosFormatados = {
@@ -374,7 +372,7 @@ export default function Atendimento() {
         <Modal
           title={editando ? "Editar Atendimento" : "Cadastrar Atendimento"}
           open={modalVisivel}
-          onOk={editarAtendimento}
+          onOk={salvarAtendimento}
           okText="Confirmar"
           cancelText="Cancelar"
           onCancel={() => setModalVisivel(false)}

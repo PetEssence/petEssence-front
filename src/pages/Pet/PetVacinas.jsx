@@ -31,41 +31,49 @@ import PetCard from "../../components/PetCard";
 const { Option } = Select;
 
 export default function PetVacinas() {
-  const [petVacinas, setPetVacinas] = useState([]);
+  const [vacinasAplicadas, setVacinasAplicadas] = useState([]);
   const [vacinas, setVacinas] = useState([]);
   const [veterinarios, setVeterinarios] = useState([]);
   const [marcas, setMarcas] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
+  const [editandoVacinasAplicadas, setEditandoVacinasAplicadas] =
+    useState(null);
+  const [mostrarDataReaplicacao, setMostrarDataReaplicacao] = useState(false);
+
   const { petId } = useParams();
 
-  const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingPetVacina, setEditingPetVacina] = useState(null);
   const [form] = Form.useForm();
+
   const vacinaCollectionRef = collection(db, "vacina");
   const vacinasAplicadasCollectionRef = collection(db, "vacinasAplicadas");
   const usuarioCollectionRef = collection(db, "usuario");
   const marcaCollectionRef = collection(db, "marca");
 
+  const valorVacinaForm = Form.useWatch("vacina", form);
+  const valorDataAplicacaoForm = Form.useWatch("dataAplicacao", form);
+
   useEffect(() => {
-    loadPetVacinas();
-    loadVacinas();
+    listarVacinasAplicadas();
+    listarVacinas();
     listarUsuarios();
     listarMarcas();
   }, []);
 
-  const loadPetVacinas = async () => {
-    setLoading(true);
+  const listarVacinasAplicadas = async () => {
+    setCarregando(true);
     try {
       const q = query(
         vacinasAplicadasCollectionRef,
         where("petId", "==", petId)
       );
       const data = await getDocs(q);
-      setPetVacinas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDocs = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setVacinasAplicadas(dataDocs);
     } catch (error) {
       message.error("Erro ao carregar as vacinas do pet");
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
@@ -77,14 +85,17 @@ export default function PetVacinas() {
         where("ativo", "==", true)
       );
       const data = await getDocs(q);
-      setVeterinarios(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setVeterinarios(
+        dataDoc.filter((doc) => doc.ativo && doc.cargo === "veterinario")
+      );
     } catch (error) {
       message.error("Erro ao carregar os veterinarios");
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
-  
+
   const listarMarcas = async () => {
     try {
       const q = query(marcaCollectionRef, where("ativo", "==", true));
@@ -95,7 +106,7 @@ export default function PetVacinas() {
     }
   };
 
-  const loadVacinas = async () => {
+  const listarVacinas = async () => {
     try {
       const data = await getDocs(vacinaCollectionRef);
       setVacinas(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
@@ -104,82 +115,119 @@ export default function PetVacinas() {
     }
   };
 
-  const handleAddPetVacina = () => {
-    setEditingPetVacina(null);
+  const abrirModalCadastro = () => {
+    setEditandoVacinasAplicadas(null);
     form.resetFields();
-    setIsModalVisible(true);
+    setModalVisivel(true);
+    setMostrarDataReaplicacao(false);
   };
 
-  const handleEditPetVacina = (petVacina) => {
-    setEditingPetVacina(petVacina);
-    const formData = {
-      ...petVacina,
-      dataAplicacao: petVacina.dataAplicacao
-        ? dayjs(petVacina.dataAplicacao)
+  const abrirModalEditar = (vacinaAplicada) => {
+    setEditandoVacinasAplicadas(vacinaAplicada);
+    form.setFieldsValue({
+      ...vacinaAplicada,
+      dataAplicacao: vacinaAplicada.dataAplicacao
+        ? dayjs(vacinaAplicada.dataAplicacao)
         : null,
-      dataFabricacao: petVacina.dataFabricacao
-        ? dayjs(petVacina.dataFabricacaoFDF)
+      dataFabricacao: vacinaAplicada.dataFabricacao
+        ? dayjs(vacinaAplicada.dataFabricacao)
         : null,
-    };
-    form.setFieldsValue(formData);
-    setIsModalVisible(true);
+      dataReaplicacao: vacinaAplicada.dataReaplicacao
+        ? dayjs(vacinaAplicada.dataReaplicacao)
+        : null,
+    });
+    setModalVisivel(true);
   };
 
-  const handleModalOk = async () => {
+  const salvarVacinaAplicada = async () => {
     try {
-      const values = await form.validateFields();
-      const formattedValues = {
-        ...values,
-        dataFabricacao: values.dataFabricacao
-          ? values.dataFabricacao.format("YYYY-MM")
+      const dados = await form.validateFields();
+      const dadosFormatados = {
+        ...dados,
+        dataFabricacao: dados.dataFabricacao
+          ? dados.dataFabricacao.format("YYYY-MM")
           : null,
-        dataAplicacao: values.dataAplicacao
-          ? values.dataAplicacao.format("YYYY-MM-DD")
+        dataAplicacao: dados.dataAplicacao
+          ? dados.dataAplicacao.format("YYYY-MM-DD")
           : null,
         petId: petId,
         ativo: true,
+        dataReaplicacao: dados.dataReaplicacao
+          ? dados.dataReaplicacao.format("YYYY-MM-DD")
+          : null,
       };
 
-      if (editingPetVacina) {
-        const petVacinaDoc = doc(
+      if (editandoVacinasAplicadas) {
+        const vacinaAplicadaDoc = doc(
           vacinasAplicadasCollectionRef,
-          editingPetVacina.id
+          editandoVacinasAplicadas.id
         );
-        const updatedData = petVacinas.map((petVacina) =>
-          petVacina.id === editingPetVacina.id
-            ? { ...petVacina, ...values }
-            : petVacina
+        const dadoAtualizado = vacinasAplicadas.map((vacinaAplicada) =>
+          vacinaAplicada.id === editandoVacinasAplicadas.id
+            ? { ...vacinaAplicada, ...dados }
+            : vacinaAplicada
         );
-        setPetVacinas(updatedData);
-        await updateDoc(petVacinaDoc, formattedValues);
+        setVacinasAplicadas(dadoAtualizado);
+        await updateDoc(vacinaAplicadaDoc, dadosFormatados);
         message.success("Vacina do pet atualizada com sucesso!");
       } else {
         const docRef = await addDoc(vacinasAplicadasCollectionRef, {
-          ...formattedValues,
+          ...dadosFormatados,
           dataCriacao: new Date().toISOString().split("T")[0],
         });
-        setPetVacinas([
-          ...petVacinas,
+        setVacinasAplicadas([
+          ...vacinasAplicadas,
           {
             id: docRef.id,
-            ...formattedValues,
+            ...dadosFormatados,
             dataCriacao: new Date().toISOString().split("T")[0],
           },
         ]);
         message.success("Vacina do pet adicionada com sucesso!");
       }
-      setIsModalVisible(false);
+      setModalVisivel(false);
       form.resetFields();
+      setMostrarDataReaplicacao(false);
     } catch (error) {
       console.error("Erro na validação:", error);
     }
   };
 
-  const handleActiveStatusPetVacina = (id, activeStatus) => {
+  useEffect(() => {
+    if (valorVacinaForm && valorDataAplicacaoForm) {
+      const vacina = vacinas.find((vacina) => vacina.id === valorVacinaForm);
+      const periodoReaplicacao = vacina?.periodoReaplicacao;
+
+      let qtdDias = 0;
+
+      if (periodoReaplicacao === "Anual") {
+        qtdDias = 365;
+      } else if (periodoReaplicacao === "Semestral") {
+        qtdDias = 180;
+      } else if (periodoReaplicacao === "Mensal") {
+        qtdDias = 30;
+      } else {
+        qtdDias = 0;
+      }
+
+      if (periodoReaplicacao != "Dose Única") {
+        const dataReaplicacao = dayjs(valorDataAplicacaoForm).add(
+          qtdDias,
+          "day"
+        );
+        setMostrarDataReaplicacao(true);
+        form.setFieldsValue({ dataReaplicacao });
+      } else {
+        setMostrarDataReaplicacao(false);
+      }
+    }
+  }, [valorVacinaForm, valorDataAplicacaoForm]);
+
+  const ativarInativar = (id, ativoStatus) => {
     Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
+      title: `Confirmar ${ativoStatus ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
+        ativoStatus ? "desativar" : "ativar"
       } esta vacina do pet?`,
       okText: "Confirmar",
       okType: "primary",
@@ -190,12 +238,12 @@ export default function PetVacinas() {
       onOk: async () => {
         try {
           const petVacinaDoc = doc(vacinasAplicadasCollectionRef, id);
-          const newStatus = { ativo: !activeStatus };
-          await updateDoc(petVacinaDoc, newStatus);
-          const updatedData = petVacinas.map((item) =>
-            item.id === id ? { ...item, ativo: !activeStatus } : item
+          const novoStatus = { ativo: !ativoStatus };
+          await updateDoc(petVacinaDoc, novoStatus);
+          const dadoEditado = vacinasAplicadas.map((item) =>
+            item.id === id ? { ...item, ativo: !ativoStatus } : item
           );
-          setPetVacinas(updatedData);
+          setVacinasAplicadas(dadoEditado);
           message.success("Vacina do pet atualizada com sucesso!");
         } catch (error) {
           message.error("Erro ao excluir vacina");
@@ -203,12 +251,13 @@ export default function PetVacinas() {
       },
     });
   };
-  const getVaccineName = (idVacina) => {
-    const vaccine = vacinas.find((s) => s.id === idVacina);
-    return vaccine ? vaccine.nome : "Vacina não encontrada";
+
+  const pegaNomeVacina = (idVacina) => {
+    const vacina = vacinas.find((s) => s.id === idVacina);
+    return vacina ? vacina.nome : "Vacina não encontrada";
   };
 
-  const columns = [
+  const colunas = [
     {
       title: "Vacina",
       dataIndex: "nome",
@@ -218,7 +267,7 @@ export default function PetVacinas() {
         <div className="flex items-center space-x-3">
           <div>
             <div className="text-gray-500 text-sm">
-              {getVaccineName(record.idVacina)}
+              {pegaNomeVacina(record.vacina)}
             </div>
           </div>
         </div>
@@ -226,7 +275,7 @@ export default function PetVacinas() {
     },
     {
       title: "Data da Aplicação",
-      dataIndex: "vaccinationDate",
+      dataIndex: "dataAplicacao",
       width: 800,
       key: "dataAplicacao",
       render: (_, record) => {
@@ -240,6 +289,28 @@ export default function PetVacinas() {
             <div>
               <div className="text-gray-500 text-sm">
                 {formatDate(record.dataAplicacao)}
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Data de Reaplicação",
+      dataIndex: "dataReaplicacao",
+      width: 800,
+      key: "dataReaplicacao",
+      render: (_, record) => {
+        const formatDate = (value) => {
+          if (!value) return "-";
+          return dayjs(value).format("DD/MM/YYYY");
+        };
+
+        return (
+          <div className="flex items-center space-x-3">
+            <div>
+              <div className="text-gray-500 text-sm">
+                {formatDate(record.dataReaplicacao)}
               </div>
             </div>
           </div>
@@ -261,7 +332,7 @@ export default function PetVacinas() {
     },
     {
       title: "Status",
-      key: "activeStatus",
+      key: "ativo",
       align: "center",
       width: 50,
       render: (_, record) => (
@@ -276,7 +347,7 @@ export default function PetVacinas() {
     },
     {
       title: "Ações",
-      key: "actions",
+      key: "acoes",
       width: 50,
       align: "center",
       render: (_, record) => (
@@ -284,11 +355,11 @@ export default function PetVacinas() {
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleEditPetVacina(record)}
+            onClick={() => abrirModalEditar(record)}
           />
           <Button
             type="text"
-            onClick={() => handleActiveStatusPetVacina(record.id, record.ativo)}
+            onClick={() => ativarInativar(record.id, record.ativo)}
           >
             {record.ativo == true ? "Desativar" : "Ativar"}
           </Button>
@@ -313,26 +384,27 @@ export default function PetVacinas() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={handleAddPetVacina}
+              onClick={abrirModalCadastro}
             >
               Cadastrar Vacina
             </Button>
           </div>
 
           <Table
-            columns={columns}
-            dataSource={petVacinas}
+            columns={colunas}
+            dataSource={vacinasAplicadas}
             rowKey="id"
-            loading={loading}
-            locale={{ emptyText: "Não há registros." }}
+            loading={carregando}
           />
           <Modal
-            title={editingPetVacina ? "Editar Vacina" : "Cadastrar Vacina"}
-            open={isModalVisible}
-            onOk={handleModalOk}
+            title={
+              editandoVacinasAplicadas ? "Editar Vacina" : "Cadastrar Vacina"
+            }
+            open={modalVisivel}
+            onOk={salvarVacinaAplicada}
             okText="Confirmar"
             cancelText="Cancelar"
-            onCancel={() => setIsModalVisible(false)}
+            onCancel={() => setModalVisivel(false)}
             width={600}
           >
             <Form form={form} layout="vertical" className="mt-4">
@@ -340,7 +412,7 @@ export default function PetVacinas() {
                 <Form.Item
                   label="Vacina"
                   className="w-3/6"
-                  name="idVacina"
+                  name="vacina"
                   rules={[
                     {
                       required: true,
@@ -363,7 +435,7 @@ export default function PetVacinas() {
                 <Form.Item
                   label="Marca"
                   className="w-3/6"
-                  name="idMarca"
+                  name="marca"
                   rules={[
                     {
                       required: true,
@@ -448,6 +520,23 @@ export default function PetVacinas() {
                   />
                 </Form.Item>
               </div>
+              {mostrarDataReaplicacao && (
+                <Form.Item
+                  label="Data de reaplicação"
+                  name="dataReaplicacao"
+                  className="w-3/6"
+                >
+                  <DatePicker
+                    format="DD/MM/YYYY"
+                    style={{ width: "100%" }}
+                    placeholder="Selecione uma data"
+                    disabledDate={(current) =>
+                      current && current > dayjs().endOf("day")
+                    }
+                  />
+                </Form.Item>
+              )}
+
               <Form.Item
                 label="Código da dose/lote"
                 name="codigoDoseLote"

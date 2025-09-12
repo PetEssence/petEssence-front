@@ -106,7 +106,7 @@ export default function Vacina() {
     vacina.nome.toLowerCase().includes(textoFiltro.toLowerCase())
   );
 
-  const columns = [
+  const colunas = [
     {
       title: "Nome",
       dataIndex: "nome",
@@ -196,7 +196,7 @@ export default function Vacina() {
           </div>
 
           <Table
-            columns={columns}
+            columns={colunas}
             dataSource={vacinasFiltradas}
             rowKey="id"
             loading={carregando}
