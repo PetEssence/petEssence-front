@@ -24,6 +24,7 @@ import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import PetLayout from "../../components/PetLayout";
 import ImageKit from "imagekit";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 
 const { Option } = Select;
 
@@ -31,15 +32,18 @@ export default function PetMoreInfo() {
   const [pet, setPet] = useState([]);
   const [especies, setEspecies] = useState([]);
   const [racas, setRacas] = useState([]);
+  const [tutoresDoPet, setTutoresDoPet] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const [foto, setFoto] = useState(null);
+  const [fezUploadFoto, setFezUploadFoto] = useState(false);
+  const [carregandoSalvar, setCarregandoSalvar] = useState(false);
+  const [ativo, setAtivo] = useState(true);
+  const [usandoCamera, setUsandoCamera] = useState(false);
+  const [modalAniversarioVisivel, setModalAniversarioVisivel] = useState(false);
   const [form] = Form.useForm();
   const { petId } = useParams();
-  const [file, setFile] = useState(null);
-  const [hasUploadedFile, setHasUploadedFile] = useState(false);
-  const [savingLoading, setSavingLoading] = useState(false);
-  const [ativo, setAtivo] = useState(true);
-  const [usingCamera, setUsingCamera] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -55,32 +59,37 @@ export default function PetMoreInfo() {
   });
 
   useEffect(() => {
-    loadEspecies();
-    loadUsuarios();
-    loadRacas();
-    loadPet();
+    listarEspecies();
+    listarUsuarios();
+    listarRacas();
+    consultarPet();
   }, []);
 
   useEffect(() => {
-    loadFormData();
+    carregaDadosForm();
   }, [pet]);
 
-  const loadPet = async () => {
-    setLoading(true);
+  const consultarPet = async () => {
+    setCarregando(true);
     try {
       const docRef = doc(petCollectionRef, petId);
       const data = await getDoc(docRef);
-      setPet({ ...data.data(), id: data.id });
-      loadFormData();
+      const dataDoc = { ...data.data(), id: data.id };
+      setPet(dataDoc);
+      carregaDadosForm();
     } catch (error) {
       message.error("Erro ao carregar pet");
-      console.log(error);
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
+  useEffect(() => {
+    if (pet && usuarios.length > 0) {
+      notificarAniversario(pet);
+    }
+  }, [pet, usuarios]);
 
-  const loadFormData = () => {
+  const carregaDadosForm = () => {
     const formData = {
       ...pet,
       foto: pet.foto,
@@ -88,15 +97,15 @@ export default function PetMoreInfo() {
       dataCriacao: pet.dataCriacao ? dayjs(pet.dataCriacao) : null,
     };
     if (formData.foto) {
-      setFile(formData.foto);
-      setHasUploadedFile(true);
+      setFoto(formData.foto);
+      setFezUploadFoto(true);
     }
     setAtivo(formData.ativo);
     form.setFieldsValue(formData);
-    setLoading(false);
+    setCarregando(false);
   };
 
-  const loadEspecies = async () => {
+  const listarEspecies = async () => {
     try {
       const especieData = await getDocs(especieCollectionRef);
       setEspecies(
@@ -107,7 +116,7 @@ export default function PetMoreInfo() {
     }
   };
 
-  const loadUsuarios = async () => {
+  const listarUsuarios = async () => {
     try {
       const q = query(
         usuarioCollectionRef,
@@ -123,7 +132,7 @@ export default function PetMoreInfo() {
     }
   };
 
-  const loadRacas = async () => {
+  const listarRacas = async () => {
     try {
       const racaData = await getDocs(racaCollectionRef);
       setRacas(racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
@@ -132,87 +141,85 @@ export default function PetMoreInfo() {
     }
   };
 
-  const handleEdit = async () => {
-    setSavingLoading(true);
+  const salvarPet = async () => {
+    setCarregandoSalvar(true);
     try {
-      const values = await form.validateFields();
-      let photoUrl = values.photo || null;
+      const dados = await form.validateFields();
+      let urlFoto = dados.foto || null;
 
-      if (file && !hasUploadedFile) {
+      if (foto && !fezUploadFoto) {
         try {
-          const resized = await resizeImage(file, 300, 300);
-          const base64 = await convertToBase64(resized);
+          const redesenha = await redesenhaImagem(foto, 300, 300);
+          const base64 = await convertParaBase64(redesenha);
 
           const upload = await imagekit.upload({
             file: base64,
-            fileName: file.name,
+            fileName: foto.name,
             folder: "/pets",
           });
-          photoUrl = upload.url;
+          urlFoto = upload.url;
         } catch (err) {
           console.error("Erro ao redimensionar/upload da imagem:", err);
           message.error("Erro ao fazer upload da imagem.");
-          setSavingLoading(false);
+          setCarregandoSalvar(false);
           return;
         }
       }
-      const formattedValues = {
-        ...values,
+      const dadosFormatados = {
+        ...dados,
         ativo: ativo,
-        dataNasc: values.dataNasc
-          ? values.dataNasc.format("YYYY-MM-DD")
-          : null,
-        photo: photoUrl,
+        dataNasc: dados.dataNasc ? dados.dataNasc.format("YYYY-MM-DD") : null,
+        foto: urlFoto,
       };
 
       const petDoc = doc(petCollectionRef, petId);
-      await updateDoc(petDoc, formattedValues);
+      await updateDoc(petDoc, dadosFormatados);
 
-      const oldOwners = pet.owner || [];
-      const newOwners = formattedValues.owner || [];
+      const tutoresAntigos = pet.owner || [];
+      const tutoresNovos = dadosFormatados.owner || [];
 
-      const addedOwners = newOwners.filter((id) => !oldOwners.includes(id));
-      const removedOwners = oldOwners.filter((id) => !newOwners.includes(id));
+      const tutoresAdicionados = tutoresNovos.filter((id) => !tutoresAntigos.includes(id));
+      const tutoresRemovidos = tutoresAntigos.filter((id) => !tutoresNovos.includes(id));
 
-      for (const ownerId of addedOwners) {
-        const ownerRef = doc(usuarioCollectionRef, ownerId);
-        const ownerSnap = await getDoc(ownerRef);
+      for (const tutorId of tutoresAdicionados) {
+        const tutorRef = doc(usuarioCollectionRef, tutorId);
+        const tutorSnap = await getDoc(tutorRef);
 
-        if (ownerSnap.exists()) {
-          const pets = ownerSnap.data().petsId || [];
-          const updatedPets = pets.includes(petDoc.id)
+        if (tutorSnap.exists()) {
+          const pets = tutorSnap.data().petsId || [];
+          const petsAtualizados = pets.includes(petDoc.id)
             ? pets
             : [...pets, petDoc.id];
 
-          await updateDoc(ownerRef, { petsId: updatedPets });
+          await updateDoc(tutorRef, { petsId: petsAtualizados });
         }
       }
 
-      for (const ownerId of removedOwners) {
-        const ownerRef = doc(usuarioCollectionRef, ownerId);
-        const ownerSnap = await getDoc(ownerRef);
+      for (const tutorId of tutoresRemovidos) {
+        const tutorRef = doc(usuarioCollectionRef, tutorId);
+        const tutorSnap = await getDoc(tutorRef);
 
-        if (ownerSnap.exists()) {
-          const pets = ownerSnap.data().petsId || [];
-          const updatedPets = pets.filter((id) => id !== petDoc.id);
+        if (tutorSnap.exists()) {
+          const pets = tutorSnap.data().petsId || [];
+          const petsAtualizados = pets.filter((id) => id !== petDoc.id);
 
-          await updateDoc(ownerRef, { petsId: updatedPets });
+          await updateDoc(tutorRef, { petsId: petsAtualizados });
         }
       }
-      setPet({ ...formattedValues, id: petDoc.id });
+      setPet({ ...dadosFormatados, id: petDoc.id });
       message.success("Pet atualizado com sucesso!");
-      setSavingLoading(false);
+      setCarregandoSalvar(false);
     } catch (error) {
       console.error("Erro na validação:", error);
       message.error("Erro ao salvar pet");
-      setSavingLoading(false);
+      setCarregandoSalvar(false);
     }
   };
-  const handleActiveStatus = (petId, activeStatus) => {
+  const ativarInativar = (id, ativoStatus) => {
     Modal.confirm({
-      title: `Confirmar ${activeStatus ? "inativação" : "ativação"}`,
+      title: `Confirmar ${ativoStatus ? "inativação" : "ativação"}`,
       content: `Tem certeza que deseja ${
-        activeStatus ? "desativar" : "ativar"
+        ativoStatus ? "desativar" : "ativar"
       } este pet?`,
       okText: "Confirmar",
       okType: "primary",
@@ -222,9 +229,9 @@ export default function PetMoreInfo() {
       },
       onOk: async () => {
         try {
-          const petDoc = doc(petCollectionRef, petId);
-          const newStatus = { ativo: !activeStatus };
-          await updateDoc(petDoc, newStatus);
+          const petDoc = doc(petCollectionRef, id);
+          const novoStatus = { ativo: !ativoStatus };
+          await updateDoc(petDoc, novoStatus);
           setAtivo(!ativo);
           message.success("Pet atualizado com sucesso!");
         } catch (error) {
@@ -233,21 +240,23 @@ export default function PetMoreInfo() {
       },
     });
   };
-  const getSpecieName = (specieId) => {
-    const specie = especies.find((s) => s.id === specieId);
-    return specie ? specie.nome : "Espécie não encontrada";
+
+  const pegaNomeEspecie = (especieId) => {
+    const especie = especies.find((s) => s.id === especieId);
+    return especie ? especie.nome : "Espécie não encontrada";
   };
 
-  const getBreedName = (breedId) => {
-    const breed = racas.find((r) => r.id === breedId);
-    return breed ? breed.nome : "Raça não encontrada";
+  const pegaNomeRaca = (racaId) => {
+    const raca = racas.find((r) => r.id === racaId);
+    return raca ? raca.nome : "Raça não encontrada";
   };
 
-  const getOwnerName = (ownerId) => {
+  const pegaNomeUsuario = (ownerId) => {
     const owner = usuarios.find((u) => u.id === ownerId);
     return owner ? owner.name : "Dono não encontrado";
   };
-  const resizeImage = (file, width = 300, height = 300) => {
+
+  const redesenhaImagem = (file, width = 300, height = 300) => {
     return new Promise((resolve, reject) => {
       const img = document.createElement("img");
       const reader = new FileReader();
@@ -274,7 +283,7 @@ export default function PetMoreInfo() {
     });
   };
 
-  const convertToBase64 = (blob) => {
+  const convertParaBase64 = (blob) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result.split(",")[1]);
@@ -283,8 +292,25 @@ export default function PetMoreInfo() {
     });
   };
 
+  const notificarAniversario = (pet) => {
+    if (!pet?.dataNasc) return;
+    const dataNasc = dayjs(pet.dataNasc).format("DD/MM");
+    const diaAtual = dayjs().format("DD/MM");
+
+    if (dataNasc === diaAtual) {
+      const tutores =
+        pet.tutorAnimal?.map((tutorId) => {
+          const tutor = usuarios.find((u) => u.id === tutorId);
+          return tutor ? tutor : { id: tutorId, nome: "Tutor não encontrado" };
+        }) || [];
+
+      setTutoresDoPet(tutores);
+      setModalAniversarioVisivel(true);
+    }
+  };
+
   useEffect(() => {
-    if (usingCamera && videoRef.current) {
+    if (usandoCamera && videoRef.current) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
@@ -292,12 +318,12 @@ export default function PetMoreInfo() {
         })
         .catch((err) => {
           console.error("Erro ao acessar câmera:", err);
-          setUsingCamera(false);
+          setUsandoCamera(false);
         });
     }
-  }, [usingCamera]);
+  }, [usandoCamera]);
 
-  const capturePhoto = () => {
+  const capturaFoto = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const context = canvas.getContext("2d");
@@ -307,41 +333,79 @@ export default function PetMoreInfo() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob((blob) => {
-      const newFile = new File([blob], "photo.jpg", { type: "image/jpeg" });
-      setFile(newFile);
-      setHasUploadedFile(false);
-      stopCamera();
+      const novoArquivo = new File([blob], "photo.jpg", { type: "image/jpeg" });
+      setFoto(novoArquivo);
+      setFezUploadFoto(false);
+      fechaCamerfa();
     }, "image/jpeg");
   };
 
-  const stopCamera = () => {
+  const fechaCamerfa = () => {
     const stream = videoRef.current?.srcObject;
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
     }
-    setUsingCamera(false);
+    setUsandoCamera(false);
   };
 
   return (
     <AppLayout>
+      <Modal
+        title={`🎉 Hoje é aniversário de ${pet?.nome}!`}
+        open={modalAniversarioVisivel}
+        onCancel={() => setModalAniversarioVisivel(false)}
+        footer={null}
+      >
+        <p className="mb-4">Escolha para qual tutor deseja enviar mensagem:</p>
+        <div className="flex flex-col gap-3">
+          {tutoresDoPet.length > 0 ? (
+            tutoresDoPet.map((tutor) => (
+              <div
+                key={tutor.id}
+                className="flex justify-between items-center p-2 rounded"
+              >
+                <span>{tutor.nome}</span>
+                <Button
+                  type="primary"
+                  icon={<WhatsappLogoIcon size={20} />}
+                  className="!bg-green-500 !hover:bg-green-600"
+                  onClick={() => {
+                    const url = `https://api.whatsapp.com/send/?phone=55${
+                      tutor.celular
+                    }&text=${encodeURIComponent(
+                      `Olá ${tutor.nome}! Hoje é aniversário do(a) ${pet.nome}! Venha na loja física resgatar seu mimo!🎉`
+                    )}`;
+                    window.open(url, "_blank");
+                  }}
+                >
+                  Enviar mensagem
+                </Button>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">Nenhum tutor encontrado.</p>
+          )}
+        </div>
+      </Modal>
+
       <PetLayout petId={pet.id} />
       <div className="space-y-6 flex items-center justify-center w-full">
         <Form
           form={form}
           layout="vertical"
           className="mt-4 flex flex-col w-2/5"
-          onFinish={handleEdit}
+          onFinish={salvarPet}
         >
           <Form.Item
             label="Foto do pet"
-            name="photo"
+            name="foto"
             className="flex justify-center items-center"
           >
             <div className="flex justify-center items-center flex-col gap-5">
-              {file && !usingCamera && (
+              {foto && !usandoCamera && (
                 <div className="mt-2 w-[300px] h-[300px] rounded overflow-hidden">
                   <img
-                    src={hasUploadedFile ? file : URL.createObjectURL(file)}
+                    src={fezUploadFoto ? foto : URL.createObjectURL(foto)}
                     alt="preview"
                     className="w-[300px] h-[300px] object-cover rounded"
                   />
@@ -350,8 +414,8 @@ export default function PetMoreInfo() {
 
               <Upload
                 beforeUpload={(file) => {
-                  setHasUploadedFile(false);
-                  setFile(file);
+                  setFezUploadFoto(false);
+                  setFoto(file);
                   return false;
                 }}
                 maxCount={1}
@@ -360,12 +424,12 @@ export default function PetMoreInfo() {
                 <Button>Selecionar Imagem</Button>
               </Upload>
               <p>ou</p>
-              {!usingCamera && (
-                <Button onClick={() => setUsingCamera(true)}>
+              {!usandoCamera && (
+                <Button onClick={() => setUsandoCamera(true)}>
                   Usar câmera
                 </Button>
               )}
-              {usingCamera && (
+              {usandoCamera && (
                 <div className="flex flex-col items-center gap-3">
                   <video
                     ref={videoRef}
@@ -374,10 +438,10 @@ export default function PetMoreInfo() {
                     className="rounded w-[300px] h-[300px] bg-black object-cover overflow-hidden"
                   ></video>
                   <div className="flex gap-3">
-                    <Button type="primary" onClick={capturePhoto}>
+                    <Button type="primary" onClick={capturaFoto}>
                       Capturar Foto
                     </Button>
-                    <Button danger onClick={stopCamera}>
+                    <Button danger onClick={fechaCamerfa}>
                       Cancelar
                     </Button>
                   </div>
@@ -456,7 +520,7 @@ export default function PetMoreInfo() {
             >
               <Select
                 placeholder="Selecione a espécie"
-                defaultValue={getSpecieName(pet.especie)}
+                defaultValue={pegaNomeEspecie(pet.especie)}
               >
                 {especies.map((especie) => (
                   <Option key={especie.id} value={especie.id}>
@@ -476,7 +540,7 @@ export default function PetMoreInfo() {
             >
               <Select
                 placeholder="Selecione a raça"
-                defaultValue={getBreedName(pet.raca)}
+                defaultValue={pegaNomeRaca(pet.raca)}
               >
                 {racas.map((raca) => (
                   <Option key={raca.id} value={raca.id}>
@@ -495,7 +559,7 @@ export default function PetMoreInfo() {
           >
             <Select
               placeholder="Selecione um ou mais tutores"
-              defaultValue={pet.tutorAnimal?.map((id) => getOwnerName(id))}
+              defaultValue={pet.tutorAnimal?.map((id) => pegaNomeUsuario(id))}
               mode="multiple"
             >
               {usuarios.map((usuario) => (
@@ -507,13 +571,14 @@ export default function PetMoreInfo() {
           </Form.Item>
           <Form.Item label={null}>
             <div className="flex justify-between">
-              <Button
-                danger
-                onClick={() => handleActiveStatus(pet.id, ativo)}
-              >
+              <Button danger onClick={() => ativarInativar(pet.id, ativo)}>
                 {ativo ? "Desativar" : "Ativar"}
               </Button>
-              <Button type="primary" htmlType="submit" loading={savingLoading}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={carregandoSalvar}
+              >
                 Confirmar
               </Button>
             </div>
