@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
-import { Table, Card, Button, Input, Space, Modal, Form, message, Tag, Radio } from "antd";
+import {
+  Table,
+  Card,
+  Button,
+  Input,
+  Space,
+  Modal,
+  Form,
+  message,
+  Tag,
+  Radio,
+} from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
 import {
@@ -10,6 +21,8 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Marca() {
   const [marca, setMarca] = useState([]);
@@ -19,7 +32,11 @@ export default function Marca() {
   const [editingMarca, setEditingMarca] = useState(null);
   const [form] = Form.useForm();
   const marcaCollectionRef = collection(db, "marca");
+  const { cargoUsuario } = useAuth();
 
+  if (cargoUsuario == "cliente") {
+    return <Navigate to="/acessoNegado" replace />;
+  }
   useEffect(() => {
     listarMarcas();
   }, []);
@@ -53,7 +70,7 @@ export default function Marca() {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        ativo: true
+        ativo: true,
       };
       if (editingMarca) {
         const marcaDoc = doc(marcaCollectionRef, editingMarca.id);
@@ -236,10 +253,15 @@ export default function Marca() {
             <Form.Item
               label="Origem"
               name="origem"
-              rules={[{ required: true, message: "Por favor, selecione a origem!" }]}
+              rules={[
+                { required: true, message: "Por favor, selecione a origem!" },
+              ]}
             >
               <Radio.Group
-                options={[{value: 'Internacional', label: "Internacional"}, {value: "Nacional", label:"Nacional"}]}
+                options={[
+                  { value: "Internacional", label: "Internacional" },
+                  { value: "Nacional", label: "Nacional" },
+                ]}
               />
             </Form.Item>
           </Form>

@@ -8,7 +8,7 @@ import {
   HomeOutlined,
   MenuUnfoldOutlined,
   TagsOutlined,
-  CalendarOutlined
+  CalendarOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -20,15 +20,15 @@ const { Header, Sider, Content } = Layout;
 const { useBreakpoint } = Grid;
 
 export default function AppLayout({ children }) {
-  const { user, logout } = useAuth();
+  const { usuario, logout, cargoUsuario } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const screens = useBreakpoint();
 
   const [collapsed, setCollapsed] = useState(() => {
-    const saved = localStorage.getItem("sidebarCollapsed");
-    if (saved !== null) {
-      return JSON.parse(saved);
+    const salvar = localStorage.getItem("sidebarCollapsed");
+    if (salvar !== null) {
+      return JSON.parse(salvar);
     }
     return !screens.lg;
   });
@@ -38,8 +38,8 @@ export default function AppLayout({ children }) {
   }, [collapsed]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("sidebarCollapsed");
-    if (!screens.lg && saved === null) {
+    const salvar = localStorage.getItem("sidebarCollapsed");
+    if (!screens.lg && salvar === null) {
       setCollapsed(true);
     }
   }, [screens]);
@@ -51,48 +51,56 @@ export default function AppLayout({ children }) {
       icon: <HomeOutlined />,
       label: "Dashboard",
       onClick: () => navigate("/dashboard"),
+      cargosPermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/usuario",
       icon: <UserOutlined />,
       label: "Usuários",
       onClick: () => navigate("/usuario"),
+      cargosPermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/raca",
       icon: <TagOutlined />,
       label: "Raças",
       onClick: () => navigate("/raca"),
+      cargosPermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/especie",
       icon: <AppstoreOutlined />,
       label: "Espécies",
       onClick: () => navigate("/especie"),
+      cargosPermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/pet",
       icon: <PawPrintIcon size={20} />,
       label: "Pets",
       onClick: () => navigate("/pet"),
+      cargosPermitidos: ["veterinario", "funcionario", "cliente"],
     },
     {
       key: "/marca",
       icon: <TagsOutlined size={20} />,
       label: "Marcas",
       onClick: () => navigate("/marca"),
+      cargosPermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/vacina",
       icon: <SyringeIcon size={20} />,
       label: "Vacinas",
       onClick: () => navigate("/vacina"),
+      cargosPermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/atendimento",
       icon: <CalendarOutlined size={20} />,
       label: "Atendimentos",
       onClick: () => navigate("/atendimento"),
+      cargosPermitidos: ["veterinario", "funcionario", "cliente"],
     },
   ];
 
@@ -105,6 +113,9 @@ export default function AppLayout({ children }) {
     },
   ];
 
+  const filtraItensMenus = menuItems.filter((item) =>
+    item.cargosPermitidos.includes(cargoUsuario?.toLowerCase())
+  );
   const siderWidth = collapsed ? 80 : 250;
 
   return (
@@ -138,7 +149,7 @@ export default function AppLayout({ children }) {
               mode="inline"
               selectedKeys={[location.pathname]}
               className="bg-primaryGreen text-white font-bold"
-              items={menuItems}
+              items={filtraItensMenus}
             />
           </div>
 
@@ -181,7 +192,7 @@ export default function AppLayout({ children }) {
             <div className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded">
               <Avatar icon={<UserOutlined />} />
               <span className="hidden sm:inline text-gray-700">
-                {user?.displayName || user?.email}
+                {usuario?.displayName || usuario?.email}
               </span>
             </div>
           </Dropdown>

@@ -20,6 +20,8 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Raca() {
   const [raca, setRaca] = useState([]);
@@ -29,7 +31,12 @@ export default function Raca() {
   const [editingRaca, setEditingRaca] = useState(null);
   const [form] = Form.useForm();
   const racaCollectionRef = collection(db, "raca");
+  const { cargoUsuario } = useAuth();
 
+  if (cargoUsuario == "cliente") {
+    return <Navigate to="/acessoNegado" replace />;
+  }
+  
   useEffect(() => {
     loadRacas();
   }, []);
@@ -161,7 +168,7 @@ export default function Raca() {
             dataSource={filteredRaças}
             rowKey="id"
             loading={loading}
-            locale={{ emptyText: "Não há registros."}}
+            locale={{ emptyText: "Não há registros." }}
           />
         </Card>
 

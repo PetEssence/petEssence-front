@@ -21,6 +21,7 @@ import PetVacinas from "./pages/Pet/PetVacinas";
 import PetVermifugo from "./pages/Pet/PetVermifugo";
 import Marca from "./pages/Marca";
 import Atendimento from "./pages/Atendimento";
+import AcessoNegado from "./pages/AcessoNegado";
 
 const RotasProtegidas = ({ children }) => {
   const { usuario, carregando } = useAuth();
@@ -34,7 +35,7 @@ const RotasProtegidas = ({ children }) => {
   }
 
   return usuario ? <>{children}</> : <Navigate to="/login" />;
-}
+};
 
 const RotasPublicas = ({ children }) => {
   const { usuario, carregando } = useAuth();
@@ -48,7 +49,7 @@ const RotasPublicas = ({ children }) => {
   }
 
   return !usuario ? <>{children}</> : <Navigate to="/login" />;
-}
+};
 
 export default function App() {
   return (
@@ -89,6 +90,7 @@ export default function App() {
                   </RotasProtegidas>
                 }
               />
+              <Route path="/acessoNegado" element={<AcessoNegado />} />
               <Route
                 path="/raca"
                 element={

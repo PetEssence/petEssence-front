@@ -23,11 +23,13 @@ import {
   doc,
   where,
   query,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import InputMask from "react-input-mask";
 import dayjs from "dayjs";
 import { useAuth } from "../hooks/useAuth";
+import { Navigate } from "react-router-dom";
 
 export default function Usuario() {
   const [usuario, setUsuario] = useState([]);
@@ -38,8 +40,11 @@ export default function Usuario() {
   const [form] = Form.useForm();
   const usuarioCollectionRef = collection(db, "usuario");
   const usuarioCargo = Form.useWatch("cargo", form);
+  const { registrar, cargoUsuario } = useAuth();
 
-  const { registrar } = useAuth();
+    if (cargoUsuario == "cliente") {
+    return <Navigate to="/acessoNegado" replace />;
+  }
 
   useEffect(() => {
     loadUsuarios();
@@ -65,8 +70,7 @@ export default function Usuario() {
     const numbers = "0123456789";
     const symbols = "!@#$%^&*()_+[]{}<>?/|";
 
-    const allChars =
-      upperCaseLetters + lowerCaseLetters + numbers + symbols;
+    const allChars = upperCaseLetters + lowerCaseLetters + numbers + symbols;
 
     let password = "";
 
@@ -75,7 +79,7 @@ export default function Usuario() {
       password += allChars[randomIndex];
     }
     return password;
-  }
+  };
 
   const handleAddUsuarios = () => {
     setEditingUsuario(null);
@@ -162,19 +166,20 @@ export default function Usuario() {
         setUsuario(updatedUsuarios);
         message.success("Usuário atualizado com sucesso!");
       } else {
-        const docRef = await addDoc(usuarioCollectionRef, {
-          ...formattedValues,
-          dataCriacao: new Date().toISOString().split("T")[0],
-        });
-        await registrar(
+        const usuarioUid = await registrar(
           formattedValues.email,
           randomPassword(),
           formattedValues.nome
         );
+        const docRef = await setDoc(doc(db, "usuario", usuarioUid.uid), {
+          ...formattedValues,
+          dataCriacao: new Date().toISOString().split("T")[0],
+        });
+
         setUsuario([
           ...usuario,
           {
-            id: docRef.id,
+            id: usuarioUid.uid,
             ...formattedValues,
             dataCriacao: new Date().toISOString().split("T")[0],
           },

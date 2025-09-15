@@ -22,6 +22,7 @@ import {
 } from "recharts";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Dashboard() {
   const [pets, setPets] = useState([]);
@@ -45,9 +46,12 @@ export default function Dashboard() {
   const vacinaCollectionRef = collection(db, "vacina");
   const vermifugosCollectionRef = collection(db, "vermifugo");
   const atendimentoCollectionRef = collection(db, "atendimento");
+  const { cargoUsuario } = useAuth();
 
   const navigate = useNavigate();
-
+  if (cargoUsuario == "cliente") {
+    return <Navigate to="/acessoNegado" replace />;
+  }
   useEffect(() => {
     listarPets();
     listarUsuarios();

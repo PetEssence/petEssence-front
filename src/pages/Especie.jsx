@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Table,
-  Card,
-  Button,
-  Input,
-  Space,
-  Modal,
-  Form,
-  message,
-} from "antd";
+import { Table, Card, Button, Input, Space, Modal, Form, message } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
 import {
@@ -19,6 +10,8 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Especie() {
   const [especie, setEspecie] = useState([]);
@@ -28,7 +21,11 @@ export default function Especie() {
   const [editingEspecie, setEditingEspecie] = useState(null);
   const [form] = Form.useForm();
   const especieCollectionRef = collection(db, "especie");
+  const { cargoUsuario } = useAuth();
 
+  if (cargoUsuario == "cliente") {
+    return <Navigate to="/acessoNegado" replace />;
+  }
   useEffect(() => {
     loadEspecies();
   }, []);
@@ -162,7 +159,7 @@ export default function Especie() {
             dataSource={filteredEspecies}
             rowKey="id"
             loading={loading}
-            locale={{ emptyText: "Não há registros."}}
+            locale={{ emptyText: "Não há registros." }}
           />
         </Card>
         <Modal

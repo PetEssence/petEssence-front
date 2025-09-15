@@ -7,18 +7,21 @@ import {
   updateProfile,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { auth, db, secondaryAuth } from "../config/firebase";
 import { message } from "antd";
+import { doc, getDoc } from "firebase/firestore";
 
 export const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [cargoUsuario, setCargoUsuario] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUsuario(user);
+      pegaCargoUsuario(user);
       setCarregando(false);
     });
 
@@ -48,11 +51,12 @@ export function AuthProvider({ children }) {
   const registrar = async (email, senha, nome) => {
     try {
       const { user } = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         email,
         senha
       );
       await updateProfile(user, { displayName: nome });
+      return user;
     } catch (error) {
       message.error("Erro ao criar conta: " + error.message);
       throw error;
@@ -69,13 +73,22 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const pegaCargoUsuario = async (usuario) => {
+    const docRef = doc(db, "usuario", usuario.uid);
+    const data = await getDoc(docRef);
+    setCargoUsuario(data.data().cargo);
+    console.log(data.data().cargo);
+  };
+
   const value = {
     usuario,
     carregando,
     login,
     registrar,
     logout,
-    redefinirSenha
+    redefinirSenha,
+    pegaCargoUsuario,
+    cargoUsuario,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

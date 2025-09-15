@@ -25,6 +25,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import dayjs from "dayjs";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Atendimento() {
   const [atendimentos, setAtendimentos] = useState([]);
@@ -36,11 +37,35 @@ export default function Atendimento() {
   const [detalhesAtendimento, setDetalhesAtendimento] = useState(null);
   const [editando, setEditando] = useState(null);
   const [form] = Form.useForm();
-
+  const { cargoUsuario } = useAuth();
   const atendimentoCollectionRef = collection(db, "atendimento");
   const usuarioCollectionRef = collection(db, "usuario");
   const petCollectionRef = collection(db, "pet");
 
+  const mostrarBotoesAcoes = () => {
+    if (cargoUsuario == "cliente" || cargoUsuario == "funcionario") return;
+    return [
+            <Button
+              key="status"
+              onClick={() =>
+                ativarInativar(
+                  detalhesAtendimento.id,
+                  detalhesAtendimento.ativo
+                )
+              }
+            >
+              {detalhesAtendimento?.ativo ? "Desativar" : "Ativar"}
+            </Button>,
+            <Button
+              key="edit"
+              type="primary"
+              onClick={() => abrirModalEditar(detalhesAtendimento)}
+            >
+              Editar
+            </Button>,
+          ]
+  }
+  
   useEffect(() => {
     listarAtendimentos();
     listarUsuarios();
@@ -145,7 +170,7 @@ export default function Atendimento() {
       },
     });
   };
-  
+
   const abrirModalEditar = (atendimento) => {
     setDetalhesAtendimento(null);
     setEditando(atendimento);
@@ -181,7 +206,8 @@ export default function Atendimento() {
     minutoFinal,
     idIgnorado = null
   ) => {
-    if (!vetId || !dataStr || minutoInicial == null || minutoFinal == null) return true;
+    if (!vetId || !dataStr || minutoInicial == null || minutoFinal == null)
+      return true;
 
     const conflito = atendimentos.some((item) => {
       if (idIgnorado && item.id === idIgnorado) return false;
@@ -207,9 +233,7 @@ export default function Atendimento() {
       const dados = await form.validateFields();
       const dadosFormatados = {
         ...dados,
-        horarioInicio: dados.horario
-          ? dados.horario[0].format("HH:mm")
-          : null,
+        horarioInicio: dados.horario ? dados.horario[0].format("HH:mm") : null,
         horarioFinal: dados.horario ? dados.horario[1].format("HH:mm") : null,
         data: dados.data ? dados.data.format("YYYY-MM-DD") : null,
         ativo: true,
@@ -217,9 +241,13 @@ export default function Atendimento() {
       };
 
       delete dadosFormatados.horario;
-      
-      const minutoInicio = dados.horario ? dayjsParaMinutos(dados.horario[0]) : null;
-      const minutoFinal = dados.horario ? dayjsParaMinutos(dados.horario[1]) : null;
+
+      const minutoInicio = dados.horario
+        ? dayjsParaMinutos(dados.horario[0])
+        : null;
+      const minutoFinal = dados.horario
+        ? dayjsParaMinutos(dados.horario[1])
+        : null;
       const dataStr = dados.data ? dados.data.format("YYYY-MM-DD") : null;
       const vetId = dados.veterinario;
       const idIgnorado = editando ? editando.id : null;
@@ -292,13 +320,15 @@ export default function Atendimento() {
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             Atendimentos
           </h1>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={abrirModalCadastro}
-          >
-            Cadastrar Atendimento
-          </Button>
+          {cargoUsuario === "veterinario" && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={abrirModalCadastro}
+            >
+              Cadastrar Atendimento
+            </Button>
+          )}
         </div>
 
         <Card loading={carregando}>
@@ -308,28 +338,9 @@ export default function Atendimento() {
           title="Detalhes do Atendimento"
           open={!!detalhesAtendimento}
           onCancel={() => setDetalhesAtendimento(null)}
-          footer={[
-            <Button
-              key="status"
-              onClick={() =>
-                ativarInativar(
-                  detalhesAtendimento.id,
-                  detalhesAtendimento.ativo
-                )
-              }
-            >
-              {detalhesAtendimento?.ativo ? "Desativar" : "Ativar"}
-            </Button>,
-            <Button
-              key="edit"
-              type="primary"
-              onClick={() => abrirModalEditar(detalhesAtendimento)}
-            >
-              Editar
-            </Button>,
-          ]}
+          footer={mostrarBotoesAcoes}
         >
-          {detalhesAtendimento && (
+          {detalhesAtendimento  && (
             <div>
               <div className="flex gap-4">
                 <p>
@@ -392,7 +403,8 @@ export default function Atendimento() {
               <Select placeholder="Selecione o pet">
                 {pets.map((pet) => (
                   <Select.Option key={pet.id} value={pet.id}>
-                    {pet.nome} ({pet.tutorAnimal.map((id) => pegaNomeUsuario(id))})
+                    {pet.nome} (
+                    {pet.tutorAnimal.map((id) => pegaNomeUsuario(id))})
                   </Select.Option>
                 ))}
               </Select>

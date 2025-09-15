@@ -20,6 +20,8 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Vacina() {
   const [vacina, setVacina] = useState([]);
@@ -29,7 +31,11 @@ export default function Vacina() {
   const [editandoVacina, setEditandoVacina] = useState(null);
   const [form] = Form.useForm();
   const vacinaCollectionRef = collection(db, "vacina");
+  const { cargoUsuario } = useAuth();
 
+  if (cargoUsuario == "cliente") {
+    return <Navigate to="/acessoNegado" replace />;
+  }
   const opcoesSelectPeriodoReaplicacao = [
     { value: "Anual", label: "Anual" },
     { value: "Semestral", label: "Semestral" },
