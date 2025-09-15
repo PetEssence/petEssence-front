@@ -2,9 +2,14 @@ import AppLayout from "../components/Layout";
 import { db } from "../config/firebase";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import { useState, useEffect } from "react";
-import { Statistic, Col, Row } from "antd";
+import { Statistic, Col, Row, Avatar, message, Button } from "antd";
 import { LoadingOutlined, UserOutlined } from "@ant-design/icons";
-import { PawPrintIcon, SyringeIcon, PillIcon } from "@phosphor-icons/react";
+import {
+  PawPrintIcon,
+  SyringeIcon,
+  PillIcon,
+  WhatsappLogoIcon,
+} from "@phosphor-icons/react";
 import {
   Bar,
   BarChart,
@@ -16,177 +21,220 @@ import {
   Area,
 } from "recharts";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [pets, setPets] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [petVacinas, setPetVacinas] = useState([]);
+  const [vacinasAplicadas, setVacinasAplicadas] = useState([]);
   const [vermifugos, setVermifugos] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [atendimentos, setAtendimentos] = useState([]);
+  const [carregando, setCarregando] = useState(false);
 
-  const [petsBySpecie, setPetsBySpecie] = useState([]);
-  const [appliedVaccines, setAppliedVaccines] = useState([]);
-  const [usersByDate, setUsersByDate] = useState([]);
-  const [petsByDate, setPetsByDate] = useState([]);
+  const [petsPorEspecie, setPetsPorEspecie] = useState([]);
+  const [vacinasAplicadasPets, setVacinasAplicadasPets] = useState([]);
+  const [usuariosPorData, setUsuariosPorData] = useState([]);
+  const [petsPorData, setPetsPorData] = useState([]);
+  const [atendimentosHoje, setAtendimentosHoje] = useState([]);
+  const [aniversariantes, setAniversariantes] = useState([]);
 
   const especieCollectionRef = collection(db, "especie");
   const petCollectionRef = collection(db, "pet");
   const usuarioCollectionRef = collection(db, "usuario");
-  const petVacinaCollectionRef = collection(db, "petVacina");
+  const vacinasAplicadasCollectionRef = collection(db, "vacinasAplicadas");
   const vacinaCollectionRef = collection(db, "vacina");
   const vermifugosCollectionRef = collection(db, "vermifugo");
+  const atendimentoCollectionRef = collection(db, "atendimento");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadPets();
-    loadUsuarios();
-    loadPetVacinas();
-    loadVermifugos();
+    listarPets();
+    listarUsuarios();
+    listarVacinasAplicadas();
+    listarVermifugos();
+    listarAtendimentos();
   }, []);
 
-  const loadPets = async () => {
-    setLoading(true);
+  const listarPets = async () => {
+    setCarregando(true);
     try {
       const especieData = await getDocs(especieCollectionRef);
       const especies = especieData.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
+
       const q = query(petCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
       const petData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       setPets(petData);
-      const specieCount = {};
-      const petByDate = {};
+      const contadorEspecie = {};
+      const petPorData = {};
 
-      const getSpecieName = (specieId) => {
-        const specie = especies.find((s) => s.id === specieId);
-        return specie ? specie.nome : "Espécie não encontrada";
+      const pegaNomeEspecie = (especieId) => {
+        const especie = especies.find((s) => s.id === especieId);
+        return especie ? especie.nome : "Espécie não encontrada";
       };
 
       petData.forEach((pet) => {
-        const registrationDate = formatDate(pet.dataCriacao);
-        const specie = getSpecieName(pet.especie);
-        specieCount[specie] = (specieCount[specie] || 0) + 1;
-        petByDate[registrationDate] = (petByDate[registrationDate] || 0) + 1;
+        const dataCriacao = formataData(pet.dataCriacao);
+        const especieNome = pegaNomeEspecie(pet.especie);
+        contadorEspecie[especieNome] = (contadorEspecie[especieNome] || 0) + 1;
+        petPorData[dataCriacao] = (petPorData[dataCriacao] || 0) + 1;
       });
 
-      const specieArray = Object.entries(specieCount).map(
-        ([specie, count]) => ({
-          name: specie,
+      const especieArray = Object.entries(contadorEspecie).map(
+        ([especie, count]) => ({
+          nome: especie,
           "N° de pets": count,
         })
       );
 
-      const petsDateArray = Object.entries(petByDate)
-        .map(([date, count]) => ({
-          date: date,
+      const petsPorDataArray = Object.entries(petPorData)
+        .map(([data, count]) => ({
+          data: data,
           "N° de pets registrados": count,
         }))
         .sort((a, b) => {
-          const dateA = new Date(a.date.split("/").reverse().join("-"));
-          const dateB = new Date(b.date.split("/").reverse().join("-"));
-          return dateA - dateB;
+          const dataA = new Date(a.data.split("/").reverse().join("-"));
+          const dataB = new Date(b.data.split("/").reverse().join("-"));
+          return dataA - dataB;
         });
 
-      setPetsBySpecie(specieArray);
-      setPetsByDate(petsDateArray);
+      setPetsPorEspecie(especieArray);
+      setPetsPorData(petsPorDataArray);
+
+      const dataHoje = dayjs().format("DD/MM");
+      setAniversariantes(
+        petData.filter(
+          (pet) => dayjs(pet.dataNasc).format("DD/MM") === dataHoje
+        )
+      );
     } catch (error) {
-      message.error("Erro ao carregar pets");
+      message.error(error);
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
-  const loadPetVacinas = async () => {
+  const listarVacinasAplicadas = async () => {
     try {
-      const vaccineData = await getDocs(vacinaCollectionRef);
-      const vacinas = vaccineData.docs.map((doc) => ({
+      const vacinaData = await getDocs(vacinaCollectionRef);
+      const vacinas = vacinaData.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
 
-      const q = query(petVacinaCollectionRef, where("ativo", "==", true));
+      const q = query(vacinasAplicadasCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
       const petVacinasData = data.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
-      const getVaccineName = (vaccineId) => {
-        const vaccine = vacinas.find((s) => s.id === vaccineId);
-        return vaccine ? vaccine.nome : "Vacina não encontrada";
+
+      const pegaNomeVacina = (vacinaId) => {
+        const vacina = vacinas.find((s) => s.id === vacinaId);
+        return vacina ? vacina.nome : "Vacina não encontrada";
       };
 
-      setPetVacinas(petVacinasData);
-      const vaccineCount = {};
+      setVacinasAplicadas(petVacinasData);
+      const contadorVacina = {};
       petVacinasData.forEach((vac) => {
-        const vaccineName = getVaccineName(vac.idVacina);
-        vaccineCount[vaccineName] = (vaccineCount[vaccineName] || 0) + 1;
+        const nomeVacina = pegaNomeVacina(vac.vacina);
+        contadorVacina[nomeVacina] = (contadorVacina[nomeVacina] || 0) + 1;
       });
 
-      const vaccineArray = Object.entries(vaccineCount).map(
-        ([vaccine, count]) => ({
-           name: vaccine,
+      const vacinaArray = Object.entries(contadorVacina).map(
+        ([vacina, count]) => ({
+          nome: vacina,
           "N° de vacinas aplicadas": count,
         })
       );
-      setAppliedVaccines(vaccineArray);
+      setVacinasAplicadasPets(vacinaArray);
     } catch (error) {
       message.error("Erro ao carregar vacinas aplicadas");
     }
   };
 
-  const loadVermifugos = async () => {
+  const listarVermifugos = async () => {
     try {
       const q = query(vermifugosCollectionRef, where("ativo", "==", true));
       const data = await getDocs(q);
       setVermifugos(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     } catch (error) {
-      message.error("Erro ao carregar vermí fugos aplicadas");
+      message.error("Erro ao carregar vermífugos aplicadas");
     }
   };
 
-  const loadUsuarios = async () => {
+  const listarAtendimentos = async () => {
     try {
-      const q = query(
-        usuarioCollectionRef,
-        where("ativo", "==", true),
-        where("cargo", "==", "cliente")
+      const q = query(atendimentoCollectionRef, where("ativo", "==", true));
+      const data = await getDocs(q);
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setAtendimentos(dataDoc);
+
+      setAtendimentosHoje(
+        dataDoc.filter(
+          (atendimento) =>
+            formataData(atendimento.data) === dayjs().format("DD/MM/YYYY")
+        )
       );
+    } catch (error) {
+      message.error("Erro ao carregar atendimentos");
+    }
+  };
+
+  const listarUsuarios = async () => {
+    try {
+      const q = query(usuarioCollectionRef, where("ativo", "==", true));
       const usuarioData = await getDocs(q);
       const data = usuarioData.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
       setUsuarios(data);
-      const userByDate = {};
-      data.forEach((user) => {
-        const userRegistrationDate = formatDate(user.dataCriacao);
-        userByDate[userRegistrationDate] =
-          (userByDate[userRegistrationDate] || 0) + 1;
+
+      const clientes = data.filter((d) => d.cargo === "cliente");
+      const usuariosPorData = {};
+      clientes.forEach((user) => {
+        const usuarioDataCriacao = formataData(user.dataCriacao);
+        usuariosPorData[usuarioDataCriacao] =
+          (usuariosPorData[usuarioDataCriacao] || 0) + 1;
       });
 
-      const userDateArray = Object.entries(userByDate)
-        .map(([date, count]) => ({
-          date: date,
+      const usuarioDataArray = Object.entries(usuariosPorData)
+        .map(([data, count]) => ({
+          data: data,
           "N° de clientes registrados": count,
         }))
         .sort((a, b) => {
-          const dateA = new Date(a.date.split("/").reverse().join("-"));
-          const dateB = new Date(b.date.split("/").reverse().join("-"));
-          return dateA - dateB;
+          const dataA = new Date(a.data.split("/").reverse().join("-"));
+          const dataB = new Date(b.data.split("/").reverse().join("-"));
+          return dataA - dataB;
         });
-      setUsersByDate(userDateArray);
+      setUsuariosPorData(usuarioDataArray);
     } catch (error) {
       message.error("Erro ao carregar clientes");
     }
   };
 
-  const formatDate = (timestamp) => {
-    const date = dayjs(timestamp)
-    return date.format('DD/MM/YYYY')
-  }
+  const formataData = (timestamp) => {
+    const data = dayjs(timestamp);
+    return data.format("DD/MM/YYYY");
+  };
 
-  if (loading)
+  const consultaPet = (petId) => {
+    const pet = pets.find((p) => p.id === petId);
+    return pet;
+  };
+
+  const pegaNomeUsuario = (usuarioId) => {
+    const usuario = usuarios.find((u) => u.id === usuarioId);
+    return usuario ? usuario.nome : "Dono não encontrado";
+  };
+
+  if (carregando)
     return (
       <AppLayout>
         <LoadingOutlined />
@@ -197,11 +245,93 @@ export default function Dashboard() {
     <AppLayout>
       <div className="space-y-6">
         <Row gutter={16}>
+          {atendimentosHoje.length > 0 && (
+            <Col span={12}>
+              <div className="border-2 rounded-lg p-4 border-primaryGreen">
+                <h1 className="text-base font-bold mb-2">
+                  Atendimentos do dia
+                </h1>
+                {atendimentosHoje.map((atendimento) => (
+                  <div className="flex gap-2 mt-2">
+                    <Avatar
+                      src={consultaPet(atendimento.pet).foto}
+                      size={{
+                        xs: 24,
+                        sm: 32,
+                        md: 40,
+                        lg: 64,
+                        xl: 80,
+                        xxl: 100,
+                      }}
+                      shape="square"
+                      className="object-contain"
+                    />
+                    <div className="flex flex-col">
+                      <b>{consultaPet(atendimento.pet).nome}</b>
+                      <p>
+                        <b>Horário: </b>
+                        {atendimento.horarioInicio} - {atendimento.horarioFinal}
+                      </p>
+                      <p>
+                        <b>Veterinário:</b>{" "}
+                        {pegaNomeUsuario(atendimento.veterinario)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Col>
+          )}
+          {aniversariantes.length > 0 && (
+            <Col span={12}>
+              <div className="border-2 rounded-lg p-4 border-primaryGreen">
+                <h1 className="text-base font-bold mb-2">
+                  Aniversariantes do dia
+                </h1>
+                {aniversariantes.map((aniversariante) => (
+                  <div className="flex gap-2 mt-2">
+                    <Avatar
+                      src={aniversariante.foto}
+                      size={{
+                        xs: 24,
+                        sm: 32,
+                        md: 40,
+                        lg: 64,
+                        xl: 80,
+                        xxl: 100,
+                      }}
+                      shape="square"
+                      className="object-contain"
+                    />
+                    <div className="flex flex-col">
+                      <b>{aniversariante.nome}</b>
+                      <p>
+                        {" "}
+                        {aniversariante.tutorAnimal.map(
+                          (tutor) => pegaNomeUsuario(tutor) + " - "
+                        )}
+                      </p>
+                      <Button
+                        icon={<WhatsappLogoIcon />}
+                        onClick={() => navigate(`/${aniversariante.id}`)}
+                        className="!bg-green-500 !hover:bg-green-600"
+                        type="primary"
+                      >
+                        Enviar mensagem
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Col>
+          )}
+        </Row>
+        <Row gutter={16}>
           <Col span={6}>
             <Statistic
               title="N° de clientes"
               value={usuarios.length}
-              prefix={<UserOutlined/>}
+              prefix={<UserOutlined />}
               className="border-2 rounded-lg p-4 border-primaryGreen"
             />
           </Col>
@@ -216,7 +346,7 @@ export default function Dashboard() {
           <Col span={6}>
             <Statistic
               title="N° de Vacinas aplicadas"
-              value={petVacinas.length}
+              value={vacinasAplicadas.length}
               prefix={<SyringeIcon />}
               className="border-2 rounded-lg p-4 border-primaryGreen"
             />
@@ -238,10 +368,10 @@ export default function Dashboard() {
               </h1>
 
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart width={730} height={250} data={petsBySpecie}>
-                  <XAxis dataKey="name" />
+                <BarChart width={730} height={250} data={petsPorEspecie}>
+                  <XAxis dataKey="nome" />
                   <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false}/>
+                  <Tooltip cursor={false} isAnimationActive={false} />
                   <Bar dataKey="N° de pets" fill="#29C28D" />
                 </BarChart>
               </ResponsiveContainer>
@@ -252,10 +382,10 @@ export default function Dashboard() {
               <h1 className="text-base font-bold mb-2">Vacinas aplicadas</h1>
 
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart width={730} height={250} data={appliedVaccines}>
-                  <XAxis dataKey="name" />
+                <BarChart width={730} height={250} data={vacinasAplicadasPets}>
+                  <XAxis dataKey="nome" />
                   <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false}/>
+                  <Tooltip cursor={false} isAnimationActive={false} />
                   <Bar dataKey="N° de vacinas aplicadas" fill="#2FA63E" />
                 </BarChart>
               </ResponsiveContainer>
@@ -271,10 +401,10 @@ export default function Dashboard() {
               </h1>
 
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart width={730} height={250} data={usersByDate}>
-                  <XAxis dataKey="date" />
+                <AreaChart width={730} height={250} data={usuariosPorData}>
+                  <XAxis dataKey="data" />
                   <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false}/>
+                  <Tooltip cursor={false} isAnimationActive={false} />
                   <Area
                     dataKey="N° de clientes registrados"
                     fill="#2FA63E"
@@ -291,10 +421,10 @@ export default function Dashboard() {
               </h1>
 
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart width={730} height={250} data={petsByDate}>
-                  <XAxis dataKey="date" />
+                <AreaChart width={730} height={250} data={petsPorData}>
+                  <XAxis dataKey="data" />
                   <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false}/>
+                  <Tooltip cursor={false} isAnimationActive={false} />
                   <Area
                     dataKey="N° de pets registrados"
                     fill="#29C28D"
