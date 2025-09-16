@@ -27,6 +27,7 @@ import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import PetLayout from "../../components/PetLayout";
 import PetCard from "../../components/PetCard";
+import { useAuth } from "../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -40,6 +41,8 @@ export default function PetVacinas() {
   const [editandoVacinasAplicadas, setEditandoVacinasAplicadas] =
     useState(null);
   const [mostrarDataReaplicacao, setMostrarDataReaplicacao] = useState(false);
+
+  const { cargoUsuario } = useAuth();
 
   const { petId } = useParams();
 
@@ -352,17 +355,21 @@ export default function PetVacinas() {
       align: "center",
       render: (_, record) => (
         <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => abrirModalEditar(record)}
-          />
-          <Button
-            type="text"
-            onClick={() => ativarInativar(record.id, record.ativo)}
-          >
-            {record.ativo == true ? "Desativar" : "Ativar"}
-          </Button>
+          {cargoUsuario !== "cliente" && (
+            <>
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => abrirModalEditar(record)}
+              />
+              <Button
+                type="text"
+                onClick={() => ativarInativar(record.id, record.ativo)}
+              >
+                {record.ativo == true ? "Desativar" : "Ativar"}
+              </Button>
+            </>
+          )}
         </Space>
       ),
     },
@@ -381,13 +388,16 @@ export default function PetVacinas() {
                 Vacinas do Pet
               </h1>
             </div>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={abrirModalCadastro}
-            >
-              Cadastrar Vacina
-            </Button>
+
+            {cargoUsuario !== "cliente" && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={abrirModalCadastro}
+              >
+                Cadastrar Vacina
+              </Button>
+            )}
           </div>
 
           <Table

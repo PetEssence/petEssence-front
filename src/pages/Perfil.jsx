@@ -360,6 +360,7 @@ export default function Perfil() {
           >
             <Select
               placeholder="Selecione o cargo"
+              disabled={true}
               defaultValue={undefined}
               options={[
                 { value: "funcionario", label: "Funcionário" },

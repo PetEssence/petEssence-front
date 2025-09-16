@@ -21,7 +21,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import dayjs from "dayjs";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import PetLayout from "../../components/PetLayout";
 import ImageKit from "imagekit";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
@@ -44,6 +44,7 @@ export default function PetMoreInfo() {
   const [modalAniversarioVisivel, setModalAniversarioVisivel] = useState(false);
   const [form] = Form.useForm();
   const { petId } = useParams();
+  const navigate = useNavigate();
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -83,12 +84,18 @@ export default function PetMoreInfo() {
       const docRef = doc(petCollectionRef, petId);
       const data = await getDoc(docRef);
       const dataDoc = { ...data.data(), id: data.id };
-      if ((cargoUsuario == "cliente") && (dataDoc.tutorAnimal.includes(usuario.uid))) {
-        setPet(dataDoc);
-        carregaDadosForm();
-      } else {
-        return <Navigate to="/acessoNegado" replace />;
+      if (cargoUsuario == "cliente") {
+        console.log(dataDoc.tutorAnimal.includes(usuario.uid));
+        if (dataDoc.tutorAnimal.includes(usuario.uid)) {
+          setPet(dataDoc);
+          carregaDadosForm();
+        } else {
+          navigate("/acessoNegado", { replace: true });
+        }
       }
+
+      setPet(dataDoc);
+      carregaDadosForm();
     } catch (error) {
       message.error("Erro ao carregar pet");
     } finally {
