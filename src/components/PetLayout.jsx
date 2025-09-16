@@ -9,17 +9,17 @@ export default function PetLayout({petId}) {
     {
       label: "Dados gerais",
       key: "geral",
-      onClick: () => navigate(`/${petId}`),
+      onClick: () => navigate(`/pet/${petId}`),
     },
     {
       label: "Vacinas",
       key: "vaccine",
-      onClick: () => navigate(`/${petId}/vacinas`),
+      onClick: () => navigate(`/pet/${petId}/vacinas`),
     },
     {
       label: "Vermífugo",
       key: "vermifuge",
-      onClick: () => navigate(`/${petId}/vermifugos`),
+      onClick: () => navigate(`/pet/${petId}/vermifugos`),
 
     }
   ];

@@ -22,6 +22,7 @@ import PetVermifugo from "./pages/Pet/PetVermifugo";
 import Marca from "./pages/Marca";
 import Atendimento from "./pages/Atendimento";
 import AcessoNegado from "./pages/AcessoNegado";
+import Pagina404 from "./pages/Pagina404";
 
 const RotasProtegidas = ({ children }) => {
   const { usuario, carregando } = useAuth();
@@ -140,7 +141,7 @@ export default function App() {
                 }
               />
               <Route
-                path="/:petId"
+                path="/pet/:petId"
                 element={
                   <RotasProtegidas>
                     <PetMoreInfo />
@@ -148,7 +149,7 @@ export default function App() {
                 }
               />
               <Route
-                path="/:petId/vacinas"
+                path="/pet/:petId/vacinas"
                 element={
                   <RotasProtegidas>
                     <PetVacinas />
@@ -156,7 +157,7 @@ export default function App() {
                 }
               />
               <Route
-                path="/:petId/vermifugos"
+                path="/pet/:petId/vermifugos"
                 element={
                   <RotasProtegidas>
                     <PetVermifugo />
@@ -164,6 +165,7 @@ export default function App() {
                 }
               />
               <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="*" element={<Pagina404 />} />
             </Routes>
           </div>
         </Router>
