@@ -33,6 +33,7 @@ import { db } from "../../config/firebase";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import ImageKit from "imagekit";
+import { useAuth } from "../../contexts/AuthContext";
 
 const { Meta } = Card;
 const { Option } = Select;
@@ -42,16 +43,22 @@ export default function Pet() {
   const [especies, setEspecies] = useState([]);
   const [racas, setRacas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [searchRaca, setSearchRaca] = useState(null);
-  const [searchEspecie, setSearchEspecie] = useState(null);
-  const [searchUsuario, setSearchUsuario] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+
+  const [textoFiltro, setTextoFiltro] = useState("");
+  const [filtroRaca, setFiltroRaca] = useState(null);
+  const [filtroEspecie, setFiltroEspecie] = useState(null);
+  const [filtroUsuario, setFiltroUsuario] = useState(null);
+
+  const [modalVisivel, setModalVisivel] = useState(false);
+  const [foto, setFoto] = useState(null);
+  const [carregandoSalvar, setCarregandoSalvar] = useState(false);
+  const [usandoCamera, setUsandoCamera] = useState(false);
+
+  const { cargoUsuario, usuario } = useAuth();
+
   const [form] = Form.useForm();
-  const [file, setFile] = useState(null);
-  const [savingLoading, setSavingLoading] = useState(false);
-  const [usingCamera, setUsingCamera] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -59,34 +66,47 @@ export default function Pet() {
   const especieCollectionRef = collection(db, "especie");
   const racaCollectionRef = collection(db, "raca");
   const usuarioCollectionRef = collection(db, "usuario");
-  const isFilterActive = searchText || searchRaca || searchEspecie || searchUsuario;
+  const isFilterActive =
+    textoFiltro || filtroRaca || filtroEspecie || filtroUsuario;
 
   const imagekit = new ImageKit({
     urlEndpoint: "https://ik.imagekit.io/petEssence",
     publicKey: import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY,
     privateKey: import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY,
   });
-
   useEffect(() => {
-    loadEspecies();
-    loadRacas();
-    loadUsuarios();
-    loadPets();
+    listarEspecies();
+    listarRacas();
+    listarUsuarios();
   }, []);
 
-  const loadPets = async () => {
-    setLoading(true);
+  useEffect(() => {
+    if (cargoUsuario) {
+      listarPets();
+    }
+  }, [cargoUsuario]);
+
+  const listarPets = async () => {
+    setCarregando(true);
     try {
       const data = await getDocs(petCollectionRef);
-      setPets(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      if (cargoUsuario == "cliente") {
+        const pets = dataDoc.filter((pet) =>
+          pet.tutorAnimal.includes(usuario.uid)
+        );
+        setPets(pets);
+      } else {
+        setPets(dataDoc);
+      }
     } catch (error) {
       message.error("Erro ao carregar pets");
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
-  const loadEspecies = async () => {
+  const listarEspecies = async () => {
     try {
       const especieData = await getDocs(especieCollectionRef);
       setEspecies(
@@ -97,7 +117,7 @@ export default function Pet() {
     }
   };
 
-  const loadUsuarios = async () => {
+  const listarUsuarios = async () => {
     try {
       const q = query(
         usuarioCollectionRef,
@@ -113,7 +133,7 @@ export default function Pet() {
     }
   };
 
-  const loadRacas = async () => {
+  const listarRacas = async () => {
     try {
       const racaData = await getDocs(racaCollectionRef);
       setRacas(racaData.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
@@ -124,23 +144,23 @@ export default function Pet() {
 
   const handleAddPet = () => {
     form.resetFields();
-    setFile(null);
-    setIsModalVisible(true);
+    setFoto(null);
+    setModalVisivel(true);
   };
 
   const handleModalOk = async () => {
     try {
-      setSavingLoading(true);
+      setCarregandoSalvar(true);
       const values = await form.validateFields();
       let photoUrl = values.foto || null;
-      if (file) {
+      if (foto) {
         try {
-          const resized = await resizeImage(file, 300, 300);
+          const resized = await resizeImage(foto, 300, 300);
           const base64 = await convertToBase64(resized);
 
           const upload = await imagekit.upload({
             file: base64,
-            fileName: file.name,
+            fileName: foto.name,
             folder: "/pets",
           });
           photoUrl = upload.url;
@@ -153,9 +173,7 @@ export default function Pet() {
       const formattedValues = {
         ...values,
         foto: photoUrl,
-        dataNasc: values.dataNasc
-          ? values.dataNasc.format("YYYY-MM-DD")
-          : null,
+        dataNasc: values.dataNasc ? values.dataNasc.format("YYYY-MM-DD") : null,
       };
 
       const docRef = await addDoc(petCollectionRef, {
@@ -188,14 +206,14 @@ export default function Pet() {
         },
       ]);
       message.success("Pet adicionado com sucesso!");
-      setIsModalVisible(false);
+      setModalVisivel(false);
       form.resetFields();
-      setFile(null);
-      setSavingLoading(false);
+      setFoto(null);
+      setCarregandoSalvar(false);
     } catch (error) {
       console.error("Erro na validação:", error);
       message.error("Erro ao salvar pet.");
-      setSavingLoading(false);
+      setCarregandoSalvar(false);
     }
   };
 
@@ -236,19 +254,22 @@ export default function Pet() {
   };
 
   const filteredPet = pets.filter((pet) => {
-    const matchName = pet.nome.toLowerCase().includes(searchText.toLowerCase());
-    const matchRaca = !searchRaca || pet.raca === searchRaca;
-    const matchEspecie = !searchEspecie || pet.especie === searchEspecie;
-    const matchTutor = !searchUsuario || pet.tutorAnimal.includes(searchUsuario);
+    const matchName = pet.nome
+      .toLowerCase()
+      .includes(textoFiltro.toLowerCase());
+    const matchRaca = !filtroRaca || pet.raca === filtroRaca;
+    const matchEspecie = !filtroEspecie || pet.especie === filtroEspecie;
+    const matchTutor =
+      !filtroUsuario || pet.tutorAnimal.includes(filtroUsuario);
 
     return matchName && matchRaca && matchEspecie && matchTutor;
   });
 
   const handleClearFilters = () => {
-    setSearchText("");
-    setSearchRaca(null);
-    setSearchEspecie(null);
-    setSearchUsuario(null);
+    setTextoFiltro("");
+    setFiltroRaca(null);
+    setFiltroEspecie(null);
+    setFiltroUsuario(null);
   };
 
   const getSpecieName = (specieId) => {
@@ -267,7 +288,7 @@ export default function Pet() {
   };
 
   useEffect(() => {
-    if (usingCamera && videoRef.current) {
+    if (usandoCamera && videoRef.current) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
@@ -275,10 +296,10 @@ export default function Pet() {
         })
         .catch((err) => {
           console.error("Erro ao acessar câmera:", err);
-          setUsingCamera(false);
+          setUsandoCamera(false);
         });
     }
-  }, [usingCamera]);
+  }, [usandoCamera]);
 
   const capturePhoto = () => {
     const canvas = canvasRef.current;
@@ -291,7 +312,7 @@ export default function Pet() {
 
     canvas.toBlob((blob) => {
       const newFile = new File([blob], "photo.jpg", { type: "image/jpeg" });
-      setFile(newFile);
+      setFoto(newFile);
       stopCamera();
     }, "image/jpeg");
   };
@@ -301,7 +322,7 @@ export default function Pet() {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
     }
-    setUsingCamera(false);
+    setUsandoCamera(false);
   };
 
   return (
@@ -311,9 +332,15 @@ export default function Pet() {
           <div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Pets</h1>
           </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAddPet}>
-            Cadastrar Pet
-          </Button>
+          {cargoUsuario != "cliente" && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddPet}
+            >
+              Cadastrar Pet
+            </Button>
+          )}
         </div>
 
         <Card>
@@ -321,17 +348,17 @@ export default function Pet() {
             <Input
               placeholder="Buscar Pet..."
               prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              value={textoFiltro}
+              onChange={(e) => setTextoFiltro(e.target.value)}
               className="max-w-sm"
             />
             <Select
               placeholder="Filtre por raça"
               className="w-52"
               allowClear={true}
-              value={searchRaca}
+              value={filtroRaca}
               prefix={<FilterOutlined />}
-              onChange={(e) => setSearchRaca(e)}
+              onChange={(e) => setFiltroRaca(e)}
             >
               {racas.map((raca) => (
                 <Option key={raca.id} value={raca.id}>
@@ -343,9 +370,9 @@ export default function Pet() {
               placeholder="Filtre por espécie"
               className="w-52"
               allowClear={true}
-              value={searchEspecie}
+              value={filtroEspecie}
               prefix={<FilterOutlined />}
-              onChange={(e) => setSearchEspecie(e)}
+              onChange={(e) => setFiltroEspecie(e)}
             >
               {especies.map((e) => (
                 <Option key={e.id} value={e.id}>
@@ -353,20 +380,22 @@ export default function Pet() {
                 </Option>
               ))}
             </Select>
-            <Select
-              placeholder="Filtre por tutor"
-              className="w-52"
-              allowClear={true}
-              value={searchUsuario}
-              prefix={<FilterOutlined />}
-              onChange={(e) => setSearchUsuario(e)}
-            >
-              {usuarios.map((u) => (
-                <Option key={u.id} value={u.id}>
-                  {u.name}
-                </Option>
-              ))}
-            </Select>
+            {cargoUsuario != "cliente" && (
+              <Select
+                placeholder="Filtre por tutor"
+                className="w-52"
+                allowClear={true}
+                value={filtroUsuario}
+                prefix={<FilterOutlined />}
+                onChange={(e) => setFiltroUsuario(e)}
+              >
+                {usuarios.map((u) => (
+                  <Option key={u.id} value={u.id}>
+                    {u.name}
+                  </Option>
+                ))}
+              </Select>
+            )}
             {isFilterActive && (
               <Button
                 icon={<ClearOutlined />}
@@ -381,7 +410,7 @@ export default function Pet() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPet.length > 0 ? (
               filteredPet.map((pet) => (
-                <Link to={`/${pet.id}`} key={pet.id}>
+                <Link to={`/pet/${pet.id}`} key={pet.id}>
                   <Card
                     key={pet.id}
                     hoverable
@@ -415,7 +444,9 @@ export default function Pet() {
                         <div className="space-y-1">
                           <div className="text-xs text-gray-500 truncate">
                             Tutores:{" "}
-                            {pet.tutorAnimal.map((id) => getOwnerName(id) + " - ")}
+                            {pet.tutorAnimal.map(
+                              (id) => getOwnerName(id) + " - "
+                            )}
                           </div>
                           <div className="text-xs text-gray-400">
                             Raça: {getBreedName(pet.raca)}
@@ -439,12 +470,12 @@ export default function Pet() {
 
         <Modal
           title={"Cadastrar Pet"}
-          open={isModalVisible}
+          open={modalVisivel}
           onOk={handleModalOk}
           okText="Confirmar"
           cancelText="Cancelar"
-          confirmLoading={savingLoading}
-          onCancel={() => setIsModalVisible(false)}
+          confirmLoading={carregandoSalvar}
+          onCancel={() => setModalVisivel(false)}
           width={600}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
@@ -454,16 +485,16 @@ export default function Pet() {
               className="flex justify-center items-center"
             >
               <div className="flex justify-center items-center flex-col gap-5">
-                {file && !usingCamera && (
+                {foto && !usandoCamera && (
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={URL.createObjectURL(foto)}
                     alt="preview"
                     className="mt-2 object-cover rounded w-[300px] h-[300px]"
                   />
                 )}
                 <Upload
                   beforeUpload={(file) => {
-                    setFile(file);
+                    setFoto(file);
                     return false;
                   }}
                   maxCount={1}
@@ -473,13 +504,13 @@ export default function Pet() {
                 </Upload>
                 <p>ou</p>
 
-                {!usingCamera && (
-                  <Button onClick={() => setUsingCamera(true)}>
+                {!usandoCamera && (
+                  <Button onClick={() => setUsandoCamera(true)}>
                     Usar câmera
                   </Button>
                 )}
 
-                {usingCamera && (
+                {usandoCamera && (
                   <div className="flex flex-col items-center gap-3">
                     <video
                       ref={videoRef}

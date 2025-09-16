@@ -2,7 +2,7 @@ import AppLayout from "../components/Layout";
 import { db } from "../config/firebase";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import { useState, useEffect } from "react";
-import { Statistic, Col, Row, Avatar, message, Button } from "antd";
+import { Statistic, Col, Row, Avatar, message, Button, Spin } from "antd";
 import { LoadingOutlined, UserOutlined } from "@ant-design/icons";
 import {
   PawPrintIcon,
@@ -21,7 +21,7 @@ import {
   Area,
 } from "recharts";
 import dayjs from "dayjs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Dashboard() {
@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [vacinasAplicadas, setVacinasAplicadas] = useState([]);
   const [vermifugos, setVermifugos] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregandoPagina, setCarregandoPagina] = useState(false);
 
   const [petsPorEspecie, setPetsPorEspecie] = useState([]);
   const [vacinasAplicadasPets, setVacinasAplicadasPets] = useState([]);
@@ -46,22 +46,34 @@ export default function Dashboard() {
   const vacinaCollectionRef = collection(db, "vacina");
   const vermifugosCollectionRef = collection(db, "vermifugo");
   const atendimentoCollectionRef = collection(db, "atendimento");
-  const { cargoUsuario } = useAuth();
+  const { cargoUsuario, carregando } = useAuth();
 
   const navigate = useNavigate();
-  if (cargoUsuario == "cliente") {
+
+  useEffect(() => {
+    if (cargoUsuario && cargoUsuario !== "cliente") {
+      listarPets();
+      listarUsuarios();
+      listarVacinasAplicadas();
+      listarVermifugos();
+      listarAtendimentos();
+    }
+  }, [cargoUsuario]);
+
+  if (carregando || cargoUsuario === undefined || cargoUsuario === null) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (cargoUsuario === "cliente") {
     return <Navigate to="/acessoNegado" replace />;
   }
-  useEffect(() => {
-    listarPets();
-    listarUsuarios();
-    listarVacinasAplicadas();
-    listarVermifugos();
-    listarAtendimentos();
-  }, []);
 
   const listarPets = async () => {
-    setCarregando(true);
+    setCarregandoPagina(true);
     try {
       const especieData = await getDocs(especieCollectionRef);
       const especies = especieData.docs.map((doc) => ({
@@ -118,7 +130,8 @@ export default function Dashboard() {
     } catch (error) {
       message.error(error);
     } finally {
-      setCarregando(false);
+      setCarregandoPagina(false);
+      console.log(carregandoPagina)
     }
   };
 
@@ -130,7 +143,10 @@ export default function Dashboard() {
         id: doc.id,
       }));
 
-      const q = query(vacinasAplicadasCollectionRef, where("ativo", "==", true));
+      const q = query(
+        vacinasAplicadasCollectionRef,
+        where("ativo", "==", true)
+      );
       const data = await getDocs(q);
       const petVacinasData = data.docs.map((doc) => ({
         ...doc.data(),
@@ -238,7 +254,7 @@ export default function Dashboard() {
     return usuario ? usuario.nome : "Dono não encontrado";
   };
 
-  if (carregando)
+  if (carregandoPagina)
     return (
       <AppLayout>
         <LoadingOutlined />
@@ -247,199 +263,206 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <Row gutter={16}>
-          {atendimentosHoje.length > 0 && (
-            <Col span={12}>
-              <div className="border-2 rounded-lg p-4 border-primaryGreen">
-                <h1 className="text-base font-bold mb-2">
-                  Atendimentos do dia
-                </h1>
-                {atendimentosHoje.map((atendimento) => (
-                  <div className="flex gap-2 mt-2">
-                    <Avatar
-                      src={consultaPet(atendimento.pet).foto}
-                      size={{
-                        xs: 24,
-                        sm: 32,
-                        md: 40,
-                        lg: 64,
-                        xl: 80,
-                        xxl: 100,
-                      }}
-                      shape="square"
-                      className="object-contain"
-                    />
-                    <div className="flex flex-col">
-                      <b>{consultaPet(atendimento.pet).nome}</b>
-                      <p>
-                        <b>Horário: </b>
-                        {atendimento.horarioInicio} - {atendimento.horarioFinal}
-                      </p>
-                      <p>
-                        <b>Veterinário:</b>{" "}
-                        {pegaNomeUsuario(atendimento.veterinario)}
-                      </p>
+      {!carregandoPagina && cargoUsuario && (
+        <div className="space-y-6">
+          <Row gutter={16}>
+            {atendimentosHoje.length > 0 && (
+              <Col span={12}>
+                <div className="border-2 rounded-lg p-4 border-primaryGreen">
+                  <h1 className="text-base font-bold mb-2">
+                    Atendimentos do dia
+                  </h1>
+                  {atendimentosHoje.map((atendimento) => (
+                    <div className="flex gap-2 mt-2">
+                      <Avatar
+                        src={consultaPet(atendimento.pet).foto}
+                        size={{
+                          xs: 24,
+                          sm: 32,
+                          md: 40,
+                          lg: 64,
+                          xl: 80,
+                          xxl: 100,
+                        }}
+                        shape="square"
+                        className="object-contain"
+                      />
+                      <div className="flex flex-col">
+                        <b>{consultaPet(atendimento.pet).nome}</b>
+                        <p>
+                          <b>Horário: </b>
+                          {atendimento.horarioInicio} -{" "}
+                          {atendimento.horarioFinal}
+                        </p>
+                        <p>
+                          <b>Veterinário:</b>{" "}
+                          {pegaNomeUsuario(atendimento.veterinario)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </Col>
+            )}
+            {aniversariantes.length > 0 && (
+              <Col span={12}>
+                <div className="border-2 rounded-lg p-4 border-primaryGreen">
+                  <h1 className="text-base font-bold mb-2">
+                    Aniversariantes do dia
+                  </h1>
+                  {aniversariantes.map((aniversariante) => (
+                    <div className="flex gap-2 mt-2">
+                      <Avatar
+                        src={aniversariante.foto}
+                        size={{
+                          xs: 24,
+                          sm: 32,
+                          md: 40,
+                          lg: 64,
+                          xl: 80,
+                          xxl: 100,
+                        }}
+                        shape="square"
+                        className="object-contain"
+                      />
+                      <div className="flex flex-col">
+                        <b>{aniversariante.nome}</b>
+                        <p>
+                          {" "}
+                          {aniversariante.tutorAnimal.map(
+                            (tutor) => pegaNomeUsuario(tutor) + " - "
+                          )}
+                        </p>
+                        <Button
+                          icon={<WhatsappLogoIcon />}
+                          onClick={() => navigate(`/${aniversariante.id}`)}
+                          className="!bg-green-500 !hover:bg-green-600"
+                          type="primary"
+                        >
+                          Enviar mensagem
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Col>
+            )}
+          </Row>
+          <Row gutter={16}>
+            <Col span={6}>
+              <Statistic
+                title="N° de clientes"
+                value={usuarios.length}
+                prefix={<UserOutlined />}
+                className="border-2 rounded-lg p-4 border-primaryGreen"
+              />
+            </Col>
+            <Col span={6}>
+              <Statistic
+                title="N° de Pets"
+                value={pets.length}
+                prefix={<PawPrintIcon />}
+                className="border-2 rounded-lg p-4 border-primaryGreen"
+              />
+            </Col>
+            <Col span={6}>
+              <Statistic
+                title="N° de Vacinas aplicadas"
+                value={vacinasAplicadas.length}
+                prefix={<SyringeIcon />}
+                className="border-2 rounded-lg p-4 border-primaryGreen"
+              />
+            </Col>
+            <Col span={6}>
+              <Statistic
+                title="N° de vermifugações realizadas"
+                value={vermifugos.length}
+                prefix={<PillIcon />}
+                className="border-2 rounded-lg p-4 border-primaryGreen"
+              />
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
+                <h1 className="text-base font-bold mb-2">
+                  Quantidade de pets por espécie
+                </h1>
+
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart width={730} height={250} data={petsPorEspecie}>
+                    <XAxis dataKey="nome" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip cursor={false} isAnimationActive={false} />
+                    <Bar dataKey="N° de pets" fill="#29C28D" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </Col>
-          )}
-          {aniversariantes.length > 0 && (
             <Col span={12}>
-              <div className="border-2 rounded-lg p-4 border-primaryGreen">
-                <h1 className="text-base font-bold mb-2">
-                  Aniversariantes do dia
-                </h1>
-                {aniversariantes.map((aniversariante) => (
-                  <div className="flex gap-2 mt-2">
-                    <Avatar
-                      src={aniversariante.foto}
-                      size={{
-                        xs: 24,
-                        sm: 32,
-                        md: 40,
-                        lg: 64,
-                        xl: 80,
-                        xxl: 100,
-                      }}
-                      shape="square"
-                      className="object-contain"
-                    />
-                    <div className="flex flex-col">
-                      <b>{aniversariante.nome}</b>
-                      <p>
-                        {" "}
-                        {aniversariante.tutorAnimal.map(
-                          (tutor) => pegaNomeUsuario(tutor) + " - "
-                        )}
-                      </p>
-                      <Button
-                        icon={<WhatsappLogoIcon />}
-                        onClick={() => navigate(`/${aniversariante.id}`)}
-                        className="!bg-green-500 !hover:bg-green-600"
-                        type="primary"
-                      >
-                        Enviar mensagem
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
+                <h1 className="text-base font-bold mb-2">Vacinas aplicadas</h1>
+
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart
+                    width={730}
+                    height={250}
+                    data={vacinasAplicadasPets}
+                  >
+                    <XAxis dataKey="nome" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip cursor={false} isAnimationActive={false} />
+                    <Bar dataKey="N° de vacinas aplicadas" fill="#2FA63E" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </Col>
-          )}
-        </Row>
-        <Row gutter={16}>
-          <Col span={6}>
-            <Statistic
-              title="N° de clientes"
-              value={usuarios.length}
-              prefix={<UserOutlined />}
-              className="border-2 rounded-lg p-4 border-primaryGreen"
-            />
-          </Col>
-          <Col span={6}>
-            <Statistic
-              title="N° de Pets"
-              value={pets.length}
-              prefix={<PawPrintIcon />}
-              className="border-2 rounded-lg p-4 border-primaryGreen"
-            />
-          </Col>
-          <Col span={6}>
-            <Statistic
-              title="N° de Vacinas aplicadas"
-              value={vacinasAplicadas.length}
-              prefix={<SyringeIcon />}
-              className="border-2 rounded-lg p-4 border-primaryGreen"
-            />
-          </Col>
-          <Col span={6}>
-            <Statistic
-              title="N° de vermifugações realizadas"
-              value={vermifugos.length}
-              prefix={<PillIcon />}
-              className="border-2 rounded-lg p-4 border-primaryGreen"
-            />
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
-              <h1 className="text-base font-bold mb-2">
-                Quantidade de pets por espécie
-              </h1>
+          </Row>
 
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart width={730} height={250} data={petsPorEspecie}>
-                  <XAxis dataKey="nome" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false} />
-                  <Bar dataKey="N° de pets" fill="#29C28D" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
-              <h1 className="text-base font-bold mb-2">Vacinas aplicadas</h1>
+          <Row gutter={16}>
+            <Col span={12}>
+              <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
+                <h1 className="text-base font-bold mb-2">
+                  Clientes registrados por dia
+                </h1>
 
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart width={730} height={250} data={vacinasAplicadasPets}>
-                  <XAxis dataKey="nome" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false} />
-                  <Bar dataKey="N° de vacinas aplicadas" fill="#2FA63E" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Col>
-        </Row>
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart width={730} height={250} data={usuariosPorData}>
+                    <XAxis dataKey="data" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip cursor={false} isAnimationActive={false} />
+                    <Area
+                      dataKey="N° de clientes registrados"
+                      fill="#2FA63E"
+                      stroke="#2FA63E"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Col>
+            <Col span={12}>
+              <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
+                <h1 className="text-base font-bold mb-2">
+                  Pets registrados por dia
+                </h1>
 
-        <Row gutter={16}>
-          <Col span={12}>
-            <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
-              <h1 className="text-base font-bold mb-2">
-                Clientes registrados por dia
-              </h1>
-
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart width={730} height={250} data={usuariosPorData}>
-                  <XAxis dataKey="data" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false} />
-                  <Area
-                    dataKey="N° de clientes registrados"
-                    fill="#2FA63E"
-                    stroke="#2FA63E"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
-              <h1 className="text-base font-bold mb-2">
-                Pets registrados por dia
-              </h1>
-
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart width={730} height={250} data={petsPorData}>
-                  <XAxis dataKey="data" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip cursor={false} isAnimationActive={false} />
-                  <Area
-                    dataKey="N° de pets registrados"
-                    fill="#29C28D"
-                    stroke="#29C28D"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Col>
-        </Row>
-      </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart width={730} height={250} data={petsPorData}>
+                    <XAxis dataKey="data" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip cursor={false} isAnimationActive={false} />
+                    <Area
+                      dataKey="N° de pets registrados"
+                      fill="#29C28D"
+                      stroke="#29C28D"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Col>
+          </Row>
+        </div>
+      )}
     </AppLayout>
   );
 }

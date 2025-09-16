@@ -21,10 +21,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import dayjs from "dayjs";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import PetLayout from "../../components/PetLayout";
 import ImageKit from "imagekit";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const { Option } = Select;
 
@@ -47,6 +48,8 @@ export default function PetMoreInfo() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
+  const { usuario, cargoUsuario } = useAuth();
+
   const petCollectionRef = collection(db, "pet");
   const especieCollectionRef = collection(db, "especie");
   const racaCollectionRef = collection(db, "raca");
@@ -62,8 +65,13 @@ export default function PetMoreInfo() {
     listarEspecies();
     listarUsuarios();
     listarRacas();
-    consultarPet();
   }, []);
+
+  useEffect(() => {
+    if (cargoUsuario) {
+      consultarPet();
+    }
+  }, [cargoUsuario]);
 
   useEffect(() => {
     carregaDadosForm();
@@ -75,8 +83,12 @@ export default function PetMoreInfo() {
       const docRef = doc(petCollectionRef, petId);
       const data = await getDoc(docRef);
       const dataDoc = { ...data.data(), id: data.id };
-      setPet(dataDoc);
-      carregaDadosForm();
+      if ((cargoUsuario == "cliente") && (dataDoc.tutorAnimal.includes(usuario.uid))) {
+        setPet(dataDoc);
+        carregaDadosForm();
+      } else {
+        return <Navigate to="/acessoNegado" replace />;
+      }
     } catch (error) {
       message.error("Erro ao carregar pet");
     } finally {
@@ -178,8 +190,12 @@ export default function PetMoreInfo() {
       const tutoresAntigos = pet.owner || [];
       const tutoresNovos = dadosFormatados.owner || [];
 
-      const tutoresAdicionados = tutoresNovos.filter((id) => !tutoresAntigos.includes(id));
-      const tutoresRemovidos = tutoresAntigos.filter((id) => !tutoresNovos.includes(id));
+      const tutoresAdicionados = tutoresNovos.filter(
+        (id) => !tutoresAntigos.includes(id)
+      );
+      const tutoresRemovidos = tutoresAntigos.filter(
+        (id) => !tutoresNovos.includes(id)
+      );
 
       for (const tutorId of tutoresAdicionados) {
         const tutorRef = doc(usuarioCollectionRef, tutorId);

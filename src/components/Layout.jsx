@@ -51,56 +51,56 @@ export default function AppLayout({ children }) {
       icon: <HomeOutlined />,
       label: "Dashboard",
       onClick: () => navigate("/dashboard"),
-      cargosPermitidos: ["veterinario", "funcionario"],
+      cargospermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/usuario",
       icon: <UserOutlined />,
       label: "Usuários",
       onClick: () => navigate("/usuario"),
-      cargosPermitidos: ["veterinario", "funcionario"],
+      cargospermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/raca",
       icon: <TagOutlined />,
       label: "Raças",
       onClick: () => navigate("/raca"),
-      cargosPermitidos: ["veterinario", "funcionario"],
+      cargospermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/especie",
       icon: <AppstoreOutlined />,
       label: "Espécies",
       onClick: () => navigate("/especie"),
-      cargosPermitidos: ["veterinario", "funcionario"],
+      cargospermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/pet",
       icon: <PawPrintIcon size={20} />,
       label: "Pets",
       onClick: () => navigate("/pet"),
-      cargosPermitidos: ["veterinario", "funcionario", "cliente"],
+      cargospermitidos: ["veterinario", "funcionario", "cliente"],
     },
     {
       key: "/marca",
       icon: <TagsOutlined size={20} />,
       label: "Marcas",
       onClick: () => navigate("/marca"),
-      cargosPermitidos: ["veterinario", "funcionario"],
+      cargospermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/vacina",
       icon: <SyringeIcon size={20} />,
       label: "Vacinas",
       onClick: () => navigate("/vacina"),
-      cargosPermitidos: ["veterinario", "funcionario"],
+      cargospermitidos: ["veterinario", "funcionario"],
     },
     {
       key: "/atendimento",
       icon: <CalendarOutlined size={20} />,
       label: "Atendimentos",
       onClick: () => navigate("/atendimento"),
-      cargosPermitidos: ["veterinario", "funcionario", "cliente"],
+      cargospermitidos: ["veterinario", "funcionario", "cliente"],
     },
   ];
 
@@ -114,7 +114,7 @@ export default function AppLayout({ children }) {
   ];
 
   const filtraItensMenus = menuItems.filter((item) =>
-    item.cargosPermitidos.includes(cargoUsuario?.toLowerCase())
+    item.cargospermitidos.includes(cargoUsuario?.toLowerCase())
   );
   const siderWidth = collapsed ? 80 : 250;
 
