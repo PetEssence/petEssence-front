@@ -23,6 +23,8 @@ import Marca from "./pages/Marca";
 import Atendimento from "./pages/Atendimento";
 import AcessoNegado from "./pages/AcessoNegado";
 import Pagina404 from "./pages/Pagina404";
+import Home from "./pages/Home";
+import Perfil from "./pages/Perfil";
 
 const RotasProtegidas = ({ children }) => {
   const { usuario, carregando } = useAuth();
@@ -164,7 +166,22 @@ export default function App() {
                   </RotasProtegidas>
                 }
               />
-              <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route
+                path="/perfil"
+                element={
+                  <RotasProtegidas>
+                    <Perfil />
+                  </RotasProtegidas>
+                }
+              />
+              <Route
+                path="/"
+                element={
+                  <RotasProtegidas>
+                    <Home />
+                  </RotasProtegidas>
+                }
+              />
               <Route path="*" element={<Pagina404 />} />
             </Routes>
           </div>

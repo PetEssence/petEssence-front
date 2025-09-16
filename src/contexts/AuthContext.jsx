@@ -77,7 +77,6 @@ export function AuthProvider({ children }) {
     const docRef = doc(db, "usuario", usuario.uid);
     const data = await getDoc(docRef);
     setCargoUsuario(data.data().cargo);
-    console.log(data.data().cargo);
   };
 
   const value = {
