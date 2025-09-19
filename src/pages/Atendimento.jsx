@@ -434,11 +434,9 @@ export default function Atendimento() {
                 { required: true, message: "Por favor, selecione o pet!" },
               ]}
             >
-              {" "}
               <Select
                 placeholder="Selecione o pet"
                 showSearch
-                optionFilterProp="children"
               >
                 {pets.map((pet) => (
                   <Select.Option key={pet.id} value={pet.id}>
