@@ -45,7 +45,7 @@ export default function Usuario() {
   const usuarioCargo = Form.useWatch("cargo", form);
   const { registrar, cargoUsuario } = useAuth();
 
-    if (cargoUsuario == "cliente") {
+  if (cargoUsuario == "cliente") {
     return <Navigate to="/acessoNegado" replace />;
   }
 
@@ -169,15 +169,16 @@ export default function Usuario() {
         setUsuario(updatedUsuarios);
         message.success("Usuário atualizado com sucesso!");
       } else {
+        await setDoc(doc(db, "usuario", usuarioUid.uid), {
+          ...formattedValues,
+          dataCriacao: new Date().toISOString().split("T")[0],
+        });
+
         const usuarioUid = await registrar(
           formattedValues.email,
           randomPassword(),
           formattedValues.nome
         );
-        const docRef = await setDoc(doc(db, "usuario", usuarioUid.uid), {
-          ...formattedValues,
-          dataCriacao: new Date().toISOString().split("T")[0],
-        });
 
         setUsuario([
           ...usuario,
@@ -192,7 +193,6 @@ export default function Usuario() {
       setIsModalVisible(false);
       form.resetFields();
     } catch (error) {
-      console.error("Erro na validação:", error);
       message.error("Erro ao salvar usuário");
     }
   };

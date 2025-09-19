@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
       await sendPasswordResetEmail(auth, email);
       message.success("E-mail de redefinição de senha enviado!");
     } catch (error) {
-      message.error("Erro ao enviar e-mail: " + error.message);
+      message.error("Erro ao enviar e-mail: ");
       throw error;
     }
   };
@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
       await updateProfile(user, { displayName: nome });
       return user;
     } catch (error) {
-      message.error("Erro ao criar conta: " + error.message);
+      message.error("Erro ao criar conta: ");
       throw error;
     }
   };
@@ -68,7 +68,7 @@ export function AuthProvider({ children }) {
       await signOut(auth);
       message.success("Logout realizado com sucesso!");
     } catch (error) {
-      message.error("Erro ao fazer logout: " + error.message);
+      message.error("Erro ao fazer logout: ");
       throw error;
     }
   };
