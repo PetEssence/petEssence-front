@@ -381,7 +381,7 @@ export default function Atendimento() {
                   <b>Pet:</b> {pegaNomePet(detalhesAtendimento.pet)}
                 </p>
                 <p>
-                  <b>Tutor(es):</b> {pegaTutoresAnimal(detalhesAtendimento.pet)}
+                  <b>Tutor(es):</b> {pegaTutoresAnimal(detalhesAtendimento.pet) + ", "}
                 </p>
               </div>
               <p>
