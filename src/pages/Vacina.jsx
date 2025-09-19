@@ -9,6 +9,7 @@ import {
   Form,
   message,
   Select,
+  Grid,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -24,6 +25,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Vacina() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [vacina, setVacina] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [textoFiltro, setTextoFiltro] = useState("");
@@ -201,12 +204,15 @@ export default function Vacina() {
             />
           </div>
 
-          <Table
-            columns={colunas}
-            dataSource={vacinasFiltradas}
-            rowKey="id"
-            loading={carregando}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={colunas}
+              dataSource={vacinasFiltradas}
+              rowKey="id"
+              loading={carregando}
+              scroll={{ x: true }}
+            />
+          </div>
         </Card>
 
         <Modal
@@ -216,7 +222,8 @@ export default function Vacina() {
           okText="Confirmar"
           cancelText="Cancelar"
           onCancel={() => setModalVisivel(false)}
-          width={600}
+          width={screens.xs ? "95vw" : 600}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
           <Form form={form} layout="vertical" className="mt-4">
             <Form.Item

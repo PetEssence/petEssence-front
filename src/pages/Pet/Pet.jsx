@@ -11,6 +11,7 @@ import {
   Select,
   Avatar,
   Upload,
+  Grid,
 } from "antd";
 import {
   ClearOutlined,
@@ -39,6 +40,8 @@ const { Meta } = Card;
 const { Option } = Select;
 
 export default function Pet() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [pets, setPets] = useState([]);
   const [especies, setEspecies] = useState([]);
   const [racas, setRacas] = useState([]);
@@ -344,7 +347,7 @@ export default function Pet() {
         </div>
 
         <Card>
-          <div className="mb-4 flex gap-5">
+          <div className="mb-4 flex gap-5 flex-col md:flex-row">
             <Input
               placeholder="Buscar Pet..."
               prefix={<SearchOutlined />}
@@ -354,7 +357,7 @@ export default function Pet() {
             />
             <Select
               placeholder="Filtre por raça"
-              className="w-52"
+              className="md:w-52 w-full"
               allowClear={true}
               value={filtroRaca}
               prefix={<FilterOutlined />}
@@ -368,7 +371,7 @@ export default function Pet() {
             </Select>
             <Select
               placeholder="Filtre por espécie"
-              className="w-52"
+              className="md:w-52 w-full"
               allowClear={true}
               value={filtroEspecie}
               prefix={<FilterOutlined />}
@@ -383,7 +386,7 @@ export default function Pet() {
             {cargoUsuario != "cliente" && (
               <Select
                 placeholder="Filtre por tutor"
-                className="w-52"
+                className="md:w-52 w-full"
                 allowClear={true}
                 value={filtroUsuario}
                 prefix={<FilterOutlined />}
@@ -476,7 +479,8 @@ export default function Pet() {
           cancelText="Cancelar"
           confirmLoading={carregandoSalvar}
           onCancel={() => setModalVisivel(false)}
-          width={600}
+          width={screens.xs ? "95vw" : 700}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item
@@ -540,11 +544,11 @@ export default function Pet() {
               <Input />
             </Form.Item>
 
-            <div className="w-full flex gap-8 justify-between">
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
               <Form.Item
                 label="Sexo"
                 name="sexo"
-                className="w-3/6"
+                className="md:w-3/6 w-full"
                 rules={[
                   { required: true, message: "Por favor, selecione o sexo!" },
                 ]}
@@ -563,7 +567,7 @@ export default function Pet() {
                 label="Data de nascimento ou estimativa"
                 tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
                 name="dataNasc"
-                className="w-3/6"
+                className="md:w-3/6 w-full"
                 rules={[
                   {
                     validator: (_, value) => {
@@ -587,11 +591,11 @@ export default function Pet() {
               </Form.Item>
             </div>
 
-            <div className="w-full flex gap-8 justify-between">
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
               <Form.Item
                 label="Espécie"
                 name="especie"
-                className="w-3/6"
+                className="md:w-3/6 w-full"
                 rules={[
                   {
                     required: true,
@@ -610,7 +614,7 @@ export default function Pet() {
 
               <Form.Item
                 label="Raça"
-                className="w-3/6"
+                className="md:w-3/6 w-full"
                 name="raca"
                 rules={[
                   { required: true, message: "Por favor, selecione a raça!" },

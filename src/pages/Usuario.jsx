@@ -12,6 +12,7 @@ import {
   DatePicker,
   Select,
   Divider,
+  Grid,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -32,6 +33,8 @@ import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
 export default function Usuario() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [usuario, setUsuario] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -357,13 +360,16 @@ export default function Usuario() {
               className="max-w-sm"
             />
           </div>
-          <Table
-            columns={columns}
-            dataSource={filteredUsuarios}
-            rowKey="id"
-            loading={loading}
-            locale={{ emptyText: "Não há registros." }}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={filteredUsuarios}
+              rowKey="id"
+              loading={loading}
+              locale={{ emptyText: "Não há registros." }}
+              scroll={{ x: true }}
+            />
+          </div>
         </Card>
         <Modal
           title={editingData ? "Editar Usuário" : "Cadastrar Usuário"}
@@ -372,7 +378,8 @@ export default function Usuario() {
           okText="Confirmar"
           cancelText="Cancelar"
           onCancel={() => setIsModalVisible(false)}
-          width={600}
+          width={screens.xs ? "95vw" : 700}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item
@@ -448,11 +455,11 @@ export default function Usuario() {
             >
               <Input />
             </Form.Item>
-            <div className="w-full flex gap-8 justify-between">
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
               <Form.Item
                 label="Data de Nascimento"
                 name="dataNasc"
-                className="w-3/6"
+                className="md:w-3/6 w-full"
                 rules={[
                   {
                     required: true,
@@ -481,7 +488,7 @@ export default function Usuario() {
               <Form.Item
                 label="Celular/Telefone"
                 name="celular"
-                className="w-3/6"
+                className="md:w-3/6 w-full"
                 rules={[
                   {
                     required: true,
@@ -495,11 +502,11 @@ export default function Usuario() {
               </Form.Item>
             </div>
             <Divider>Endereço</Divider>
-            <div className="w-full flex gap-8 justify-between">
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
               <Form.Item
                 label="CEP"
                 name="cep"
-                className="w-1/3"
+                className="md:w-1/3 w-full"
                 rules={[
                   { required: true, message: "Por favor, insira o CEP!" },
                 ]}
@@ -511,7 +518,7 @@ export default function Usuario() {
               <Form.Item
                 label="Bairro"
                 name="bairro"
-                className="w-4/6"
+                className="md:w-4/6 w-full"
                 rules={[
                   { required: true, message: "Por favor, insira o bairro!" },
                 ]}
@@ -519,11 +526,11 @@ export default function Usuario() {
                 <Input />
               </Form.Item>
             </div>
-            <div className="w-full flex gap-8 justify-between">
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
               <Form.Item
                 label="Logradouro"
                 name="logradouro"
-                className="w-4/6"
+                className="md:w-4/6 w-full"
                 rules={[
                   { required: true, message: "Por favor, insira a rua!" },
                 ]}
@@ -540,11 +547,11 @@ export default function Usuario() {
                 <Input />
               </Form.Item>
             </div>
-            <div className="w-full flex gap-8 justify-between">
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
               <Form.Item
                 label="Cidade"
                 name="cidade"
-                className="w-4/6"
+                className="md:w-4/6 w-full"
                 rules={[
                   { required: true, message: "Por favor, insira a cidade!" },
                 ]}
@@ -554,7 +561,7 @@ export default function Usuario() {
               <Form.Item
                 label="Estado"
                 name="estado"
-                className="w-1/3"
+                className="md:w-1/3 w-full"
                 rules={[
                   { required: true, message: "Por favor, insira o estado!" },
                 ]}

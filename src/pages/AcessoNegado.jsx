@@ -14,9 +14,9 @@ export default function AcessoNegado() {
           <Button
             type="primary"
             className="!bg-primaryGreen !hover:bg-primaryGreenHouver"
-            onClick={() => navigate("/pet")}
+            onClick={() => navigate("/")}
           >
-            Ir para Pets
+            Voltar para o início
           </Button>
         }
       />

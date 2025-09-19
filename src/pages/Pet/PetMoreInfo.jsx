@@ -8,6 +8,7 @@ import {
   Select,
   Upload,
   Modal,
+  Grid,
 } from "antd";
 import AppLayout from "../../components/Layout";
 import {
@@ -30,6 +31,8 @@ import { useAuth } from "../../contexts/AuthContext";
 const { Option } = Select;
 
 export default function PetMoreInfo() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [pet, setPet] = useState([]);
   const [especies, setEspecies] = useState([]);
   const [racas, setRacas] = useState([]);
@@ -378,6 +381,8 @@ export default function PetMoreInfo() {
         open={modalAniversarioVisivel}
         onCancel={() => setModalAniversarioVisivel(false)}
         footer={null}
+        width={screens.xs ? "95vw" : 600}
+        style={{ top: screens.xs ? 8 : 24 }}
       >
         <p className="mb-4">Escolha para qual tutor deseja enviar mensagem:</p>
         <div className="flex flex-col gap-3">
@@ -416,7 +421,7 @@ export default function PetMoreInfo() {
         <Form
           form={form}
           layout="vertical"
-          className="mt-4 flex flex-col w-2/5"
+          className="mt-4 flex flex-col w-full md:w-3/5 lg:w-2/5"
           onFinish={salvarPet}
         >
           <Form.Item
@@ -482,11 +487,11 @@ export default function PetMoreInfo() {
             <Input />
           </Form.Item>
 
-          <div className="w-full flex gap-8 justify-between">
+          <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
             <Form.Item
               label="Sexo"
               name="sexo"
-              className="w-3/6"
+              className="md:w-3/6 w-full"
               rules={[
                 { required: true, message: "Por favor, selecione o gênero!" },
               ]}
@@ -505,7 +510,7 @@ export default function PetMoreInfo() {
               label="Data de nascimento ou estimativa"
               tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
               name="dataNasc"
-              className="w-3/6"
+              className="md:w-3/6 w-full"
               rules={[
                 {
                   validator: (_, value) => {
@@ -529,11 +534,11 @@ export default function PetMoreInfo() {
             </Form.Item>
           </div>
 
-          <div className="w-full flex gap-8 justify-between">
+          <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
             <Form.Item
               label="Espécie"
               name="especie"
-              className="w-3/6"
+              className="md:w-3/6 w-full"
               rules={[
                 {
                   required: true,
@@ -555,7 +560,7 @@ export default function PetMoreInfo() {
 
             <Form.Item
               label="Raça"
-              className="w-3/6"
+              className="md:w-3/6 w-full"
               name="raca"
               rules={[
                 { required: true, message: "Por favor, selecione a raça!" },

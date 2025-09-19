@@ -13,6 +13,9 @@ import {
   Calendar,
   Tag,
   Badge,
+  Grid,
+  List,
+  Empty,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -28,6 +31,8 @@ import dayjs from "dayjs";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Atendimento() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [atendimentos, setAtendimentos] = useState([]);
   const [veterinarios, setVeterinarios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
@@ -45,27 +50,24 @@ export default function Atendimento() {
   const mostrarBotoesAcoes = () => {
     if (cargoUsuario == "cliente" || cargoUsuario == "funcionario") return;
     return [
-            <Button
-              key="status"
-              onClick={() =>
-                ativarInativar(
-                  detalhesAtendimento.id,
-                  detalhesAtendimento.ativo
-                )
-              }
-            >
-              {detalhesAtendimento?.ativo ? "Desativar" : "Ativar"}
-            </Button>,
-            <Button
-              key="edit"
-              type="primary"
-              onClick={() => abrirModalEditar(detalhesAtendimento)}
-            >
-              Editar
-            </Button>,
-          ]
-  }
-  
+      <Button
+        key="status"
+        onClick={() =>
+          ativarInativar(detalhesAtendimento.id, detalhesAtendimento.ativo)
+        }
+      >
+        {detalhesAtendimento?.ativo ? "Desativar" : "Ativar"}
+      </Button>,
+      <Button
+        key="edit"
+        type="primary"
+        onClick={() => abrirModalEditar(detalhesAtendimento)}
+      >
+        Editar
+      </Button>,
+    ];
+  };
+
   useEffect(() => {
     listarAtendimentos();
     listarUsuarios();
@@ -90,7 +92,6 @@ export default function Atendimento() {
       const data = await getDocs(usuarioCollectionRef);
       const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       setUsuarios(dataDoc);
-
       setVeterinarios(dataDoc.filter((doc) => doc.cargo === "veterinario"));
     } catch (error) {
       message.error("Erro ao carregar os usuários");
@@ -116,13 +117,13 @@ export default function Atendimento() {
         {atendimentosDoDia.map((item) => (
           <li
             key={item.id}
-            className="border-2 rounded p-1 my-2 cursor-pointer"
+            className="rounded-lg px-2 py-1 my-1 cursor-pointer hover:bg-gray-50 transition border-l-4 border-primaryGreen"
             onClick={() => setDetalhesAtendimento(item)}
           >
             <Badge
               status={item.ativo ? "success" : "error"}
               text={
-                <span>
+                <span className="text-sm">
                   {item.descricao || "Atendimento"} ({item.horarioInicio} -{" "}
                   {item.horarioFinal})
                 </span>
@@ -211,10 +212,8 @@ export default function Atendimento() {
 
     const conflito = atendimentos.some((item) => {
       if (idIgnorado && item.id === idIgnorado) return false;
-
       if (item.veterinario !== vetId) return false;
       if (item.data !== dataStr) return false;
-
       if (!item.horarioInicio || !item.horarioFinal) return false;
       if (item.ativo === false) return false;
 
@@ -239,7 +238,6 @@ export default function Atendimento() {
         ativo: true,
         descricao: dados.descricao ? dados.descricao : null,
       };
-
       delete dadosFormatados.horario;
 
       const minutoInicio = dados.horario
@@ -313,13 +311,43 @@ export default function Atendimento() {
     return pet.tutorAnimal?.map((t) => pegaNomeUsuario(t));
   };
 
+  const listaMobile = () => {
+    if (atendimentos.length === 0)
+      return <Empty description="Nenhum atendimento agendado" />;
+    return (
+      <List
+        dataSource={atendimentos.sort((a, b) => a.data.localeCompare(b.data))}
+        renderItem={(item) => (
+          <List.Item
+            className="px-3 py-2 border-b cursor-pointer hover:bg-gray-50"
+            onClick={() => setDetalhesAtendimento(item)}
+          >
+            <List.Item.Meta
+              title={
+                <span className="font-medium">
+                  {dayjs(item.data).format("DD/MM")} -{" "}
+                  {item.descricao || "Atendimento"}
+                </span>
+              }
+              description={`${item.horarioInicio} - ${item.horarioFinal}`}
+            />
+            <Tag color={item.ativo ? "green" : "red"}>
+              {item.ativo ? "Ativo" : "Inativo"}
+            </Tag>
+          </List.Item>
+        )}
+      />
+    );
+  };
+
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+      <div className="space-y-6 relative">
+        <div className="flex justify-between items-center flex-col md:flex-row ">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">
             Atendimentos
           </h1>
+
           {cargoUsuario === "veterinario" && (
             <Button
               type="primary"
@@ -330,19 +358,25 @@ export default function Atendimento() {
             </Button>
           )}
         </div>
-
         <Card loading={carregando}>
-          <Calendar cellRender={celulaDataRender} />
+          {screens.xs ? (
+            listaMobile()
+          ) : (
+            <Calendar cellRender={celulaDataRender} fullscreen />
+          )}
         </Card>
+        {/* Modal Detalhes */}
         <Modal
           title="Detalhes do Atendimento"
           open={!!detalhesAtendimento}
           onCancel={() => setDetalhesAtendimento(null)}
           footer={mostrarBotoesAcoes}
+          width={screens.xs ? "95vw" : 600}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
-          {detalhesAtendimento  && (
-            <div>
-              <div className="flex gap-4">
+          {detalhesAtendimento && (
+            <div className="space-y-3 text-sm">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <p>
                   <b>Pet:</b> {pegaNomePet(detalhesAtendimento.pet)}
                 </p>
@@ -357,7 +391,7 @@ export default function Atendimento() {
                 <b>Veterinário:</b>{" "}
                 {pegaNomeUsuario(detalhesAtendimento.veterinario)}
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <p>
                   <b>Horário:</b> {detalhesAtendimento.horarioInicio} -{" "}
                   {detalhesAtendimento.horarioFinal}
@@ -380,6 +414,8 @@ export default function Atendimento() {
             </div>
           )}
         </Modal>
+
+        {/* Modal Form */}
         <Modal
           title={editando ? "Editar Atendimento" : "Cadastrar Atendimento"}
           open={modalVisivel}
@@ -387,24 +423,27 @@ export default function Atendimento() {
           okText="Confirmar"
           cancelText="Cancelar"
           onCancel={() => setModalVisivel(false)}
-          width={600}
+          width={screens.xs ? "95vw" : 700}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item
               label="Pet"
               name="pet"
               rules={[
-                {
-                  required: true,
-                  message: "Por favor, selecione o pet!",
-                },
+                { required: true, message: "Por favor, selecione o pet!" },
               ]}
             >
-              <Select placeholder="Selecione o pet">
+              {" "}
+              <Select
+                placeholder="Selecione o pet"
+                showSearch
+                optionFilterProp="children"
+              >
                 {pets.map((pet) => (
                   <Select.Option key={pet.id} value={pet.id}>
                     {pet.nome} (
-                    {pet.tutorAnimal.map((id) => pegaNomeUsuario(id))})
+                    {pet.tutorAnimal.map((id) => pegaNomeUsuario(id) + ", ")})
                   </Select.Option>
                 ))}
               </Select>
@@ -422,7 +461,11 @@ export default function Atendimento() {
                 },
               ]}
             >
-              <Select placeholder="Selecione o veterinário">
+              <Select
+                placeholder="Selecione o veterinário"
+                showSearch
+                optionFilterProp="children"
+              >
                 {veterinarios.map((vet) => (
                   <Select.Option key={vet.id} value={vet.id}>
                     {vet.nome}
@@ -430,17 +473,17 @@ export default function Atendimento() {
                 ))}
               </Select>
             </Form.Item>
-            <div className="w-full flex gap-8 justify-between flex-row">
+            <div className="w-full flex flex-col md:flex-row gap-4">
               <Form.Item
                 label="Data do atendimento"
                 name="data"
                 rules={[
                   { required: true, message: "Por favor, selecione a data!" },
                 ]}
+                className="flex-1"
               >
-                <DatePicker format="DD/MM/YYYY" />
+                <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
               </Form.Item>
-
               <Form.Item
                 label="Horário"
                 name="horario"
@@ -450,12 +493,13 @@ export default function Atendimento() {
                     message: "Por favor, selecione o horário!",
                   },
                 ]}
-                className="w-3/6"
+                className="flex-1"
               >
                 <TimePicker.RangePicker
                   format="HH:mm"
                   minuteStep={15}
                   needConfirm={false}
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
             </div>

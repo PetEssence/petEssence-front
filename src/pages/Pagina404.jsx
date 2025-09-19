@@ -14,7 +14,7 @@ export default function Pagina404() {
           <Button
             type="primary"
             className="!bg-primaryGreen !hover:bg-primaryGreenHouver"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/")}
           >
             Voltar para o início
           </Button>

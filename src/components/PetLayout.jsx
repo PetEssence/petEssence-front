@@ -25,6 +25,10 @@ export default function PetLayout({petId}) {
   ];
 
   return (
-    <Menu selectedKeys={[location.pathname]} mode="horizontal" items={items} />
+    <div className="w-full overflow-x-auto overflow-y-hidden sm:overflow-x-hidden">
+      <div className="min-w-[480px]">
+        <Menu selectedKeys={[location.pathname]} mode="horizontal" items={items} />
+      </div>
+    </div>
   );
 }

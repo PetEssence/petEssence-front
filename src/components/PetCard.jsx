@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  message,
-} from "antd";
-import {
-  collection,
-  getDocs,
-  getDoc,
-  doc,
-} from "firebase/firestore";
+import { message } from "antd";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useParams } from "react-router-dom";
 
@@ -16,7 +9,6 @@ export default function PetCard() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const { petId } = useParams();
-
 
   const petCollectionRef = collection(db, "pet");
   const usuarioCollectionRef = collection(db, "usuario");
@@ -59,21 +51,31 @@ export default function PetCard() {
   if (loading) return <div>Carregando</div>;
 
   return (
-    <div className="min-w-64 border rounded shadow-md flex flex-col items-center p-4 gap-2">
-      <img
-        src={pet.foto}
-        alt="preview"
-        className="mt-2 object-cover rounded w-[200px] h-[200px]"
-      />
-      <div className=" flex gap-1">
-        <span className="font-bold">Nome: </span>
-        <p>{pet.nome}</p>
+    <div className="w-full max-w-sm border rounded shadow-md flex flex-col items-center p-4 gap-2">
+      <div className="w-full flex items-center justify-center">
+        <img
+          src={pet.foto}
+          alt="preview"
+          className="mt-2 object-cover rounded w-40 h-40 sm:w-48 sm:h-48 md:w-52 md:h-52"
+        />
       </div>
-      <div className="flex flex-col gap-1 text-center">
+      <div className="flex gap-1 flex-wrap justify-center text-center">
+        <span className="font-bold">Nome: </span>
+        <p className="break-words">{pet.nome}</p>
+      </div>
+      <div className="flex flex-col gap-1 text-center w-full">
         <span className="font-bold">Tutores: </span>
-        <div>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1 items-center justify-center whitespace-pre-wrap">
           {pet.tutorAnimal?.map((o, index) => (
-            <p key={index}>{getOwnerName(o)}</p>
+            <>
+              <p
+                key={index}
+                className="truncate max-w-full sm:max-w-[200px] whitespace-pre-wrap"
+              >
+                {getOwnerName(o) + ", "} 
+              </p>
+              <br/>
+            </>
           ))}
         </div>
       </div>

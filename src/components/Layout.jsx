@@ -45,6 +45,11 @@ export default function AppLayout({ children }) {
   }, [screens]);
   const toggleCollapsed = () => setCollapsed(!collapsed);
 
+  const currentSiderWidth = screens.lg ? (collapsed ? 80 : 250) : 0;
+  const headerHeight = screens.md ? 72 : 56;
+  const outerPadding = 16; 
+  const contentPadding = screens.xs ? 16 : 24;
+
   const menuItems = [
     {
       key: "/dashboard",
@@ -131,6 +136,11 @@ export default function AppLayout({ children }) {
         collapsed={collapsed}
         trigger={null}
         width={250}
+        collapsedWidth={screens.lg ? 80 : 0}
+        breakpoint="lg"
+        onBreakpoint={(broken) => {
+          setCollapsed(broken ? true : JSON.parse(localStorage.getItem("sidebarCollapsed") ?? "false"));
+        }}
         className="fixed top-0 left-0 h-screen z-50 bg-primaryGreen"
         style={{ padding: 8 }}
       >
@@ -171,25 +181,36 @@ export default function AppLayout({ children }) {
 
       <Layout
         style={{
-          marginLeft: siderWidth,
+          marginLeft: currentSiderWidth,
           transition: "margin-left 0.3s ease",
         }}
       >
         <Header
-          className="flex items-center justify-between px-8 z-40 bg-white bg-opacity-80 backdrop-blur-md shadow-md"
+          className="flex items-center justify-between z-40 bg-white bg-opacity-80 backdrop-blur-md shadow-md"
           style={{
             position: "absolute",
-            top: 16,
-            left: siderWidth + 16,
-            width: `calc(100% - ${siderWidth + 32}px)`,
-            height: 72,
+            top: outerPadding,
+            left: currentSiderWidth + outerPadding,
+            width: `calc(100% - ${currentSiderWidth + outerPadding * 2}px)`,
+            height: headerHeight,
             borderRadius: 12,
-            transition: "left 0.3s ease, width 0.3s ease",
+            paddingLeft: screens.sm ? 32 : 16,
+            paddingRight: screens.sm ? 32 : 16,
+            transition: "left 0.3s ease, width 0.3s ease, height 0.2s ease",
             display: "flex",
             alignItems: "center",
           }}
         >
-          <img src={logoLight} className="w-44" alt="logo" />
+          {!screens.lg && (
+            <button
+              aria-label="Abrir menu"
+              onClick={() => setCollapsed(false)}
+              className="sm:hidden mr-3 text-gray-700 hover:text-primaryGreen"
+            >
+              <MenuUnfoldOutlined />
+            </button>
+          )}
+          <img src={logoLight} className="w-36 sm:w-44" alt="logo" />
           <Dropdown
             menu={{ items: userMenuItems }}
             placement="bottomRight"
@@ -206,8 +227,8 @@ export default function AppLayout({ children }) {
 
         <Content
           style={{
-            marginTop: 104,
-            padding: "24px",
+            marginTop: headerHeight + outerPadding * 2,
+            padding: contentPadding,
           }}
           className="bg-white rounded-lg shadow-sm m-4"
         >

@@ -265,9 +265,9 @@ export default function Dashboard() {
     <AppLayout>
       {!carregandoPagina && cargoUsuario && (
         <div className="space-y-6">
-          <Row gutter={16}>
+          <Row gutter={[16, 16]}>
             {atendimentosHoje.length > 0 && (
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <div className="border-2 rounded-lg p-4 border-primaryGreen">
                   <h1 className="text-base font-bold mb-2">
                     Atendimentos do dia
@@ -305,7 +305,7 @@ export default function Dashboard() {
               </Col>
             )}
             {aniversariantes.length > 0 && (
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <div className="border-2 rounded-lg p-4 border-primaryGreen">
                   <h1 className="text-base font-bold mb-2">
                     Aniversariantes do dia
@@ -348,8 +348,8 @@ export default function Dashboard() {
               </Col>
             )}
           </Row>
-          <Row gutter={16}>
-            <Col span={6}>
+          <Row gutter={[16, 16]}>
+            <Col xs={12} md={6}>
               <Statistic
                 title="N° de clientes"
                 value={usuarios.length}
@@ -357,7 +357,7 @@ export default function Dashboard() {
                 className="border-2 rounded-lg p-4 border-primaryGreen"
               />
             </Col>
-            <Col span={6}>
+            <Col xs={12} md={6}>
               <Statistic
                 title="N° de Pets"
                 value={pets.length}
@@ -365,7 +365,7 @@ export default function Dashboard() {
                 className="border-2 rounded-lg p-4 border-primaryGreen"
               />
             </Col>
-            <Col span={6}>
+            <Col xs={12} md={6}>
               <Statistic
                 title="N° de Vacinas aplicadas"
                 value={vacinasAplicadas.length}
@@ -373,7 +373,7 @@ export default function Dashboard() {
                 className="border-2 rounded-lg p-4 border-primaryGreen"
               />
             </Col>
-            <Col span={6}>
+            <Col xs={12} md={6}>
               <Statistic
                 title="N° de vermifugações realizadas"
                 value={vermifugos.length}
@@ -382,8 +382,8 @@ export default function Dashboard() {
               />
             </Col>
           </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} lg={12}>
               <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
                 <h1 className="text-base font-bold mb-2">
                   Quantidade de pets por espécie
@@ -399,7 +399,7 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
             </Col>
-            <Col span={12}>
+            <Col xs={24} lg={12}>
               <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
                 <h1 className="text-base font-bold mb-2">Vacinas aplicadas</h1>
 
@@ -419,8 +419,8 @@ export default function Dashboard() {
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} lg={12}>
               <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
                 <h1 className="text-base font-bold mb-2">
                   Clientes registrados por dia
@@ -440,7 +440,7 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
             </Col>
-            <Col span={12}>
+            <Col xs={24} lg={12}>
               <div className="w-full border-2 rounded-lg p-4 border-primaryGreen">
                 <h1 className="text-base font-bold mb-2">
                   Pets registrados por dia

@@ -10,6 +10,7 @@ import {
   Space,
   Tag,
   InputNumber,
+  Grid,
 } from "antd";
 import AppLayout from "../../components/Layout";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
@@ -29,6 +30,8 @@ import PetLayout from "../../components/PetLayout";
 import PetCard from "../../components/PetCard";
 
 export default function PetVermifugo() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [vermifugos, setVermifugos] = useState([]);
   const [marcas, setMarcas] = useState([]);
   const [mostrarDataReaplicacao, setMostrarDataReaplicacao] = useState(false);
@@ -256,19 +259,6 @@ export default function PetVermifugo() {
       ),
     },
     {
-      title: "Tipo do Vermífugo",
-      dataIndex: "tipo",
-      width: 800,
-      key: "tipo",
-      render: (_, record) => (
-        <div className="flex items-center space-x-3">
-          <div>
-            <div className="text-gray-500 text-sm">{record.tipo}</div>
-          </div>
-        </div>
-      ),
-    },
-    {
       title: "Status",
       key: "ativo",
       align: "center",
@@ -309,10 +299,13 @@ export default function PetVermifugo() {
   return (
     <AppLayout>
       <PetLayout petId={petId} />
-      <div className="flex gap-5 pt-6">
-        <PetCard />
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row gap-5 pt-6">
+        <div className="lg:sticky lg:top-4 lg:self-start lg:w-80 w-full">
+          <PetCard />
+        </div>
+
+        <div className="space-y-6 flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-800 mb-2 mt-4 ml-2">
                 Vermifugações do Pet
@@ -327,12 +320,15 @@ export default function PetVermifugo() {
             </Button>
           </div>
 
-          <Table
-            columns={colunas}
-            dataSource={vermifugos}
-            rowKey="id"
-            loading={carregando}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={colunas}
+              dataSource={vermifugos}
+              rowKey="id"
+              loading={carregando}
+              scroll={{ x: true }}
+            />
+          </div>
           <Modal
             title={editando ? "Editar Vermifugação" : "Cadastrar Vermifugação"}
             open={modalVisivel}
@@ -340,14 +336,15 @@ export default function PetVermifugo() {
             okText="Confirmar"
             cancelText="Cancelar"
             onCancel={() => setModalVisivel(false)}
-            width={600}
+            width={screens.xs ? "95vw" : 700}
+            style={{ top: screens.xs ? 8 : 24 }}
           >
             <Form form={form} layout="vertical" className="mt-4">
-              <div className="w-full flex gap-8 justify-between">
+              <div className="w-full flex gap-0 justify-between flex-col md:flex-row md:gap-8">
                 <Form.Item
                   label="Data da aplicação"
                   name="dataAplicacao"
-                  className="w-3/6"
+                  className="md:w-3/6 w-full"
                   rules={[
                     {
                       required: true,
@@ -377,7 +374,7 @@ export default function PetVermifugo() {
                 </Form.Item>
                 <Form.Item
                   label="Marca"
-                  className="w-3/6"
+                  className="md:w-3/6 w-full"
                   name="marca"
                   rules={[
                     {
@@ -402,7 +399,7 @@ export default function PetVermifugo() {
                 <Form.Item
                   label="Data de reaplicação"
                   name="dataReaplicacao"
-                  className="w-3/6"
+                  className="md:w-3/6 w-full"
                 >
                   <DatePicker
                     format="DD/MM/YYYY"

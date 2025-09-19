@@ -10,6 +10,7 @@ import {
   message,
   Tag,
   Radio,
+  Grid,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -25,6 +26,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Marca() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [marca, setMarca] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -225,13 +228,16 @@ export default function Marca() {
             />
           </div>
 
-          <Table
-            columns={columns}
-            dataSource={filteredMarcas}
-            rowKey="id"
-            loading={loading}
-            locale={{ emptyText: "Não há registros." }}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={filteredMarcas}
+              rowKey="id"
+              loading={loading}
+              locale={{ emptyText: "Não há registros." }}
+              scroll={{ x: true }}
+            />
+          </div>
         </Card>
         <Modal
           title={editingMarca ? "Editar Marca" : "Cadastrar Marca"}
@@ -240,7 +246,8 @@ export default function Marca() {
           okText="Confirmar"
           cancelText="Cancelar"
           onCancel={() => setIsModalVisible(false)}
-          width={600}
+          width={screens.xs ? "95vw" : 600}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
           <Form form={form} layout="vertical" className="mt-4">
             <Form.Item

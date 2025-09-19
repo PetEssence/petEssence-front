@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Card, Button, Input, Space, Modal, Form, message } from "antd";
+import { Table, Card, Button, Input, Space, Modal, Form, message, Grid } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
 import {
@@ -14,6 +14,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Especie() {
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
   const [especie, setEspecie] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -154,13 +156,16 @@ export default function Especie() {
             />
           </div>
 
-          <Table
-            columns={columns}
-            dataSource={filteredEspecies}
-            rowKey="id"
-            loading={loading}
-            locale={{ emptyText: "Não há registros." }}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={filteredEspecies}
+              rowKey="id"
+              loading={loading}
+              locale={{ emptyText: "Não há registros." }}
+              scroll={{ x: true }}
+            />
+          </div>
         </Card>
         <Modal
           title={editingEspecie ? "Editar Espécie" : "Cadastrar Espécie"}
@@ -169,7 +174,8 @@ export default function Especie() {
           okText="Confirmar"
           cancelText="Cancelar"
           onCancel={() => setIsModalVisible(false)}
-          width={600}
+          width={screens.xs ? "95vw" : 600}
+          style={{ top: screens.xs ? 8 : 24 }}
         >
           <Form form={form} layout="vertical" className="mt-4">
             <Form.Item
