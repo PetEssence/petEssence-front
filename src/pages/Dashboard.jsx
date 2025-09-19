@@ -335,7 +335,7 @@ export default function Dashboard() {
                         </p>
                         <Button
                           icon={<WhatsappLogoIcon />}
-                          onClick={() => navigate(`/${aniversariante.id}`)}
+                          onClick={() => navigate(`/pet/${aniversariante.id}`)}
                           className="!bg-green-500 !hover:bg-green-600"
                           type="primary"
                         >
