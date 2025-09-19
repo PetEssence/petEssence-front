@@ -169,16 +169,16 @@ export default function Usuario() {
         setUsuario(updatedUsuarios);
         message.success("Usuário atualizado com sucesso!");
       } else {
-        await setDoc(doc(db, "usuario", usuarioUid.uid), {
-          ...formattedValues,
-          dataCriacao: new Date().toISOString().split("T")[0],
-        });
-
         const usuarioUid = await registrar(
           formattedValues.email,
           randomPassword(),
           formattedValues.nome
         );
+
+        await setDoc(doc(db, "usuario", usuarioUid.uid), {
+          ...formattedValues,
+          dataCriacao: new Date().toISOString().split("T")[0],
+        });
 
         setUsuario([
           ...usuario,
