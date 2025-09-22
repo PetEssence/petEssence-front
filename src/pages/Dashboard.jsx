@@ -27,6 +27,7 @@ import { useAuth } from "../contexts/AuthContext";
 export default function Dashboard() {
   const [pets, setPets] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [vacinasAplicadas, setVacinasAplicadas] = useState([]);
   const [vermifugos, setVermifugos] = useState([]);
   const [atendimentos, setAtendimentos] = useState([]);
@@ -215,6 +216,7 @@ export default function Dashboard() {
       setUsuarios(data);
 
       const clientes = data.filter((d) => d.cargo === "cliente");
+      setClientes(clientes)
       const usuariosPorData = {};
       clientes.forEach((user) => {
         const usuarioDataCriacao = formataData(user.dataCriacao);
@@ -351,7 +353,7 @@ export default function Dashboard() {
             <Col xs={12} md={6}>
               <Statistic
                 title="N° de clientes"
-                value={usuarios.length}
+                value={clientes.length}
                 prefix={<UserOutlined />}
                 className="border-2 rounded-lg p-4 border-primaryGreen"
               />
