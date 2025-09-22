@@ -47,6 +47,7 @@ export default function Pet() {
   const [especies, setEspecies] = useState([]);
   const [racas, setRacas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [clientes, setClientes] = useState([])
   const [carregando, setCarregando] = useState(true);
 
   const [textoFiltro, setTextoFiltro] = useState("");
@@ -123,15 +124,12 @@ export default function Pet() {
 
   const listarUsuarios = async () => {
     try {
-      const q = query(
-        usuarioCollectionRef,
-        where("ativo", "==", true),
-        where("cargo", "==", "cliente")
-      );
-      const usuarioData = await getDocs(q);
+      const usuarioData = await getDocs(usuarioCollectionRef);
+      const usuarioDataDoc =  usuarioData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
       setUsuarios(
-        usuarioData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+       usuarioDataDoc
       );
+      setClientes(usuarioDataDoc.filter((data) => data.cargo === "cliente" && data.ativo))
     } catch (error) {
       message.error("Erro ao carregar clientes");
     }
@@ -393,9 +391,9 @@ export default function Pet() {
                 prefix={<FilterOutlined />}
                 onChange={(e) => setFiltroUsuario(e)}
               >
-                {usuarios.map((u) => (
+                {clientes.map((u) => (
                   <Option key={u.id} value={u.id}>
-                    {u.name}
+                    {u.nome}
                   </Option>
                 ))}
               </Select>
@@ -648,7 +646,7 @@ export default function Pet() {
                 defaultValue={undefined}
                 mode="multiple"
               >
-                {usuarios.map((usuario) => (
+                {clientes.map((usuario) => (
                   <Option key={usuario.id} value={usuario.id}>
                     {usuario.nome}
                   </Option>
