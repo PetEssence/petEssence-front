@@ -127,7 +127,6 @@ export default function AppLayout({ children }) {
   const filtraItensMenus = menuItems.filter((item) =>
     item.cargospermitidos.includes(cargoUsuario?.toLowerCase())
   );
-  const siderWidth = collapsed ? 80 : 250;
 
   return (
     <Layout className="min-h-screen">
@@ -196,7 +195,6 @@ export default function AppLayout({ children }) {
             borderRadius: 12,
             paddingLeft: screens.sm ? 32 : 16,
             paddingRight: screens.sm ? 32 : 16,
-            transition: "left 0.3s ease, width 0.3s ease, height 0.2s ease",
             display: "flex",
             alignItems: "center",
           }}

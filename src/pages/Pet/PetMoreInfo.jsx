@@ -9,6 +9,7 @@ import {
   Upload,
   Modal,
   Grid,
+  Spin,
 } from "antd";
 import AppLayout from "../../components/Layout";
 import {
@@ -38,7 +39,7 @@ export default function PetMoreInfo() {
   const [racas, setRacas] = useState([]);
   const [tutoresDoPet, setTutoresDoPet] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
   const [foto, setFoto] = useState(null);
   const [fezUploadFoto, setFezUploadFoto] = useState(false);
   const [carregandoSalvar, setCarregandoSalvar] = useState(false);
@@ -112,6 +113,7 @@ export default function PetMoreInfo() {
   }, [pet, usuarios]);
 
   const carregaDadosForm = () => {
+    setCarregando(true)
     const formData = {
       ...pet,
       foto: pet.foto,
@@ -362,11 +364,11 @@ export default function PetMoreInfo() {
       const novoArquivo = new File([blob], "photo.jpg", { type: "image/jpeg" });
       setFoto(novoArquivo);
       setFezUploadFoto(false);
-      fechaCamerfa();
+      fechaCamera();
     }, "image/jpeg");
   };
 
-  const fechaCamerfa = () => {
+  const fechaCamera = () => {
     const stream = videoRef.current?.srcObject;
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
@@ -417,202 +419,208 @@ export default function PetMoreInfo() {
       </Modal>
 
       <PetLayout petId={pet.id} />
-      <div className="space-y-6 flex items-center justify-center w-full">
-        <Form
-          form={form}
-          layout="vertical"
-          className="mt-4 flex flex-col w-full md:w-3/5 lg:w-2/5"
-          onFinish={salvarPet}
-        >
-          <Form.Item
-            label="Foto do pet"
-            name="foto"
-            className="flex justify-center items-center"
+      {carregando ? (
+        <div className="flex items-center justify-center">
+          <Spin />
+        </div>
+      ) : (
+        <div className="space-y-6 flex items-center justify-center w-full">
+          <Form
+            form={form}
+            layout="vertical"
+            className="mt-4 flex flex-col w-full md:w-3/5 lg:w-2/5"
+            onFinish={salvarPet}
           >
-            <div className="flex justify-center items-center flex-col gap-5">
-              {foto && !usandoCamera && (
-                <div className="mt-2 w-[300px] h-[300px] rounded overflow-hidden">
-                  <img
-                    src={fezUploadFoto ? foto : URL.createObjectURL(foto)}
-                    alt="preview"
-                    className="w-[300px] h-[300px] object-cover rounded"
-                  />
-                </div>
-              )}
-
-              <Upload
-                beforeUpload={(file) => {
-                  setFezUploadFoto(false);
-                  setFoto(file);
-                  return false;
-                }}
-                maxCount={1}
-                showUploadList={false}
-              >
-                <Button>Selecionar Imagem</Button>
-              </Upload>
-              <p>ou</p>
-              {!usandoCamera && (
-                <Button onClick={() => setUsandoCamera(true)}>
-                  Usar câmera
-                </Button>
-              )}
-              {usandoCamera && (
-                <div className="flex flex-col items-center gap-3">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    className="rounded w-[300px] h-[300px] bg-black object-cover overflow-hidden"
-                  ></video>
-                  <div className="flex gap-3">
-                    <Button type="primary" onClick={capturaFoto}>
-                      Capturar Foto
-                    </Button>
-                    <Button danger onClick={fechaCamerfa}>
-                      Cancelar
-                    </Button>
+            <Form.Item
+              label="Foto do pet"
+              name="foto"
+              className="flex justify-center items-center"
+            >
+              <div className="flex justify-center items-center flex-col gap-5">
+                {foto && !usandoCamera && (
+                  <div className="mt-2 w-[300px] h-[300px] rounded overflow-hidden">
+                    <img
+                      src={fezUploadFoto ? foto : URL.createObjectURL(foto)}
+                      alt="preview"
+                      className="w-[300px] h-[300px] object-cover rounded"
+                    />
                   </div>
-                  <canvas ref={canvasRef} className="hidden"></canvas>
-                </div>
-              )}
-            </div>
-          </Form.Item>
+                )}
 
-          <Form.Item
-            label="Nome"
-            name="nome"
-            rules={[{ required: true, message: "Por favor, insira o nome!" }]}
-          >
-            <Input />
-          </Form.Item>
+                <Upload
+                  beforeUpload={(file) => {
+                    setFezUploadFoto(false);
+                    setFoto(file);
+                    return false;
+                  }}
+                  maxCount={1}
+                  showUploadList={false}
+                >
+                  <Button>Selecionar Imagem</Button>
+                </Upload>
+                <p>ou</p>
+                {!usandoCamera && (
+                  <Button onClick={() => setUsandoCamera(true)}>
+                    Usar câmera
+                  </Button>
+                )}
+                {usandoCamera && (
+                  <div className="flex flex-col items-center gap-3">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="rounded w-[300px] h-[300px] bg-black object-cover overflow-hidden"
+                    ></video>
+                    <div className="flex gap-3">
+                      <Button type="primary" onClick={capturaFoto}>
+                        Capturar Foto
+                      </Button>
+                      <Button danger onClick={fechaCamera}>
+                        Cancelar
+                      </Button>
+                    </div>
+                    <canvas ref={canvasRef} className="hidden"></canvas>
+                  </div>
+                )}
+              </div>
+            </Form.Item>
 
-          <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
             <Form.Item
-              label="Sexo"
-              name="sexo"
-              className="md:w-3/6 w-full"
-              rules={[
-                { required: true, message: "Por favor, selecione o gênero!" },
-              ]}
+              label="Nome"
+              name="nome"
+              rules={[{ required: true, message: "Por favor, insira o nome!" }]}
             >
-              <Select
-                placeholder="Selecione o gênero"
-                defaultValue={pet.sexo}
-                options={[
-                  { value: "femea", label: "Fêmea" },
-                  { value: "macho", label: "Macho" },
-                  { value: "outros", label: "Outros" },
+              <Input />
+            </Form.Item>
+
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
+              <Form.Item
+                label="Sexo"
+                name="sexo"
+                className="md:w-3/6 w-full"
+                rules={[
+                  { required: true, message: "Por favor, selecione o gênero!" },
                 ]}
-              ></Select>
-            </Form.Item>
-            <Form.Item
-              label="Data de nascimento ou estimativa"
-              tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
-              name="dataNasc"
-              className="md:w-3/6 w-full"
-              rules={[
-                {
-                  validator: (_, value) => {
-                    if (!value) return Promise.resolve();
-                    if (value.isAfter(dayjs())) {
-                      return Promise.reject("A data não pode ser no futuro!");
-                    }
-                    return Promise.resolve();
+              >
+                <Select
+                  placeholder="Selecione o gênero"
+                  defaultValue={pet.sexo}
+                  options={[
+                    { value: "femea", label: "Fêmea" },
+                    { value: "macho", label: "Macho" },
+                    { value: "outros", label: "Outros" },
+                  ]}
+                ></Select>
+              </Form.Item>
+              <Form.Item
+                label="Data de nascimento ou estimativa"
+                tooltip="Indique a data de nascimento ou uma possível data que o pet tenha nascido"
+                name="dataNasc"
+                className="md:w-3/6 w-full"
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      if (value.isAfter(dayjs())) {
+                        return Promise.reject("A data não pode ser no futuro!");
+                      }
+                      return Promise.resolve();
+                    },
                   },
-                },
-              ]}
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                style={{ width: "100%" }}
-                placeholder="Selecione uma data"
-                disabledDate={(current) =>
-                  current && current > dayjs().endOf("day")
-                }
-              />
-            </Form.Item>
-          </div>
-
-          <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
-            <Form.Item
-              label="Espécie"
-              name="especie"
-              className="md:w-3/6 w-full"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, selecione a espécie!",
-                },
-              ]}
-            >
-              <Select
-                placeholder="Selecione a espécie"
-                defaultValue={pegaNomeEspecie(pet.especie)}
+                ]}
               >
-                {especies.map((especie) => (
-                  <Option key={especie.id} value={especie.id}>
-                    {especie.nome}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              label="Raça"
-              className="md:w-3/6 w-full"
-              name="raca"
-              rules={[
-                { required: true, message: "Por favor, selecione a raça!" },
-              ]}
-            >
-              <Select
-                placeholder="Selecione a raça"
-                defaultValue={pegaNomeRaca(pet.raca)}
-              >
-                {racas.map((raca) => (
-                  <Option key={raca.id} value={raca.id}>
-                    {raca.nome}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </div>
-          <Form.Item
-            label="Tutor"
-            name="tutorAnimal"
-            rules={[
-              { required: true, message: "Por favor, selecione um tutor!" },
-            ]}
-          >
-            <Select
-              placeholder="Selecione um ou mais tutores"
-              defaultValue={pet.tutorAnimal?.map((id) => pegaNomeUsuario(id))}
-              mode="multiple"
-            >
-              {usuarios.map((usuario) => (
-                <Option key={usuario.id} value={usuario.id}>
-                  {usuario.nome}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item label={null}>
-            <div className="flex justify-between">
-              <Button danger onClick={() => ativarInativar(pet.id, ativo)}>
-                {ativo ? "Desativar" : "Ativar"}
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={carregandoSalvar}
-              >
-                Confirmar
-              </Button>
+                <DatePicker
+                  format="DD/MM/YYYY"
+                  style={{ width: "100%" }}
+                  placeholder="Selecione uma data"
+                  disabledDate={(current) =>
+                    current && current > dayjs().endOf("day")
+                  }
+                />
+              </Form.Item>
             </div>
-          </Form.Item>
-        </Form>
-      </div>
+
+            <div className="w-full flex gap-8 justify-between flex-col md:flex-row">
+              <Form.Item
+                label="Espécie"
+                name="especie"
+                className="md:w-3/6 w-full"
+                rules={[
+                  {
+                    required: true,
+                    message: "Por favor, selecione a espécie!",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Selecione a espécie"
+                  defaultValue={pegaNomeEspecie(pet.especie)}
+                >
+                  {especies.map((especie) => (
+                    <Option key={especie.id} value={especie.id}>
+                      {especie.nome}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                label="Raça"
+                className="md:w-3/6 w-full"
+                name="raca"
+                rules={[
+                  { required: true, message: "Por favor, selecione a raça!" },
+                ]}
+              >
+                <Select
+                  placeholder="Selecione a raça"
+                  defaultValue={pegaNomeRaca(pet.raca)}
+                >
+                  {racas.map((raca) => (
+                    <Option key={raca.id} value={raca.id}>
+                      {raca.nome}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+            <Form.Item
+              label="Tutor"
+              name="tutorAnimal"
+              rules={[
+                { required: true, message: "Por favor, selecione um tutor!" },
+              ]}
+            >
+              <Select
+                placeholder="Selecione um ou mais tutores"
+                defaultValue={pet.tutorAnimal?.map((id) => pegaNomeUsuario(id))}
+                mode="multiple"
+              >
+                {usuarios.map((usuario) => (
+                  <Option key={usuario.id} value={usuario.id}>
+                    {usuario.nome}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label={null}>
+              <div className="flex justify-between">
+                <Button danger onClick={() => ativarInativar(pet.id, ativo)}>
+                  {ativo ? "Desativar" : "Ativar"}
+                </Button>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={carregandoSalvar}
+                >
+                  Confirmar
+                </Button>
+              </div>
+            </Form.Item>
+          </Form>
+        </div>
+      )}
     </AppLayout>
   );
 }

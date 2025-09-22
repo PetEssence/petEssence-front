@@ -3,7 +3,7 @@ import { db } from "../config/firebase";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import { Statistic, Col, Row, Avatar, message, Button, Spin } from "antd";
-import { LoadingOutlined, UserOutlined } from "@ant-design/icons";
+import { UserOutlined } from "@ant-design/icons";
 import {
   PawPrintIcon,
   SyringeIcon,
@@ -131,7 +131,6 @@ export default function Dashboard() {
       message.error(error);
     } finally {
       setCarregandoPagina(false);
-      console.log(carregandoPagina)
     }
   };
 
@@ -257,7 +256,7 @@ export default function Dashboard() {
   if (carregandoPagina)
     return (
       <AppLayout>
-        <LoadingOutlined />
+        <Spin />
       </AppLayout>
     );
 

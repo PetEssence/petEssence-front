@@ -11,6 +11,7 @@ import {
   Tag,
   InputNumber,
   Grid,
+  Spin,
 } from "antd";
 import AppLayout from "../../components/Layout";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
@@ -115,9 +116,10 @@ export default function PetVermifugo() {
         dataAplicacao: dados.dataAplicacao
           ? dados.dataAplicacao.format("YYYY-MM-DD")
           : null,
-        dataReaplicacao: dados.dataReaplicacao ? dados.dataReaplicacao.format("YYYY-MM-DD") : null,
-        pet: petId
-
+        dataReaplicacao: dados.dataReaplicacao
+          ? dados.dataReaplicacao.format("YYYY-MM-DD")
+          : null,
+        pet: petId,
       };
       if (editando) {
         const vermifugoDoc = doc(vermifugoCollectionRef, editando.id);
@@ -210,7 +212,7 @@ export default function PetVermifugo() {
         );
       },
     },
-        {
+    {
       title: "Data de reaplicação",
       dataIndex: "dataReaplicacao",
       width: 800,
@@ -320,15 +322,20 @@ export default function PetVermifugo() {
             </Button>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table
-              columns={colunas}
-              dataSource={vermifugos}
-              rowKey="id"
-              loading={carregando}
-              scroll={{ x: true }}
-            />
-          </div>
+          {carregando ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={colunas}
+                dataSource={vermifugos}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
           <Modal
             title={editando ? "Editar Vermifugação" : "Cadastrar Vermifugação"}
             open={modalVisivel}

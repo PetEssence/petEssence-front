@@ -11,6 +11,7 @@ import {
   Space,
   Tag,
   Grid,
+  Spin,
 } from "antd";
 import AppLayout from "../../components/Layout";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
@@ -405,15 +406,20 @@ export default function PetVacinas() {
             )}
           </div>
 
-          <div className="overflow-x-auto">
-            <Table
-              columns={colunas}
-              dataSource={vacinasAplicadas}
-              rowKey="id"
-              loading={carregando}
-              scroll={{ x: true }}
-            />
-          </div>
+          {carregando ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={colunas}
+                dataSource={vacinasAplicadas}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
           <Modal
             title={
               editandoVacinasAplicadas ? "Editar Vacina" : "Cadastrar Vacina"

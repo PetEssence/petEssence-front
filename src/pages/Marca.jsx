@@ -11,6 +11,7 @@ import {
   Tag,
   Radio,
   Grid,
+  Spin,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -228,16 +229,20 @@ export default function Marca() {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <Table
-              columns={columns}
-              dataSource={filteredMarcas}
-              rowKey="id"
-              loading={loading}
-              locale={{ emptyText: "Não há registros." }}
-              scroll={{ x: true }}
-            />
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={columns}
+                dataSource={filteredMarcas}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
         </Card>
         <Modal
           title={editingMarca ? "Editar Marca" : "Cadastrar Marca"}

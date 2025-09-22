@@ -13,6 +13,7 @@ import {
   Select,
   Divider,
   Grid,
+  Spin,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -360,16 +361,20 @@ export default function Usuario() {
               className="max-w-sm"
             />
           </div>
-          <div className="overflow-x-auto">
-            <Table
-              columns={columns}
-              dataSource={filteredUsuarios}
-              rowKey="id"
-              loading={loading}
-              locale={{ emptyText: "Não há registros." }}
-              scroll={{ x: true }}
-            />
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={columns}
+                dataSource={filteredUsuarios}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
         </Card>
         <Modal
           title={editingData ? "Editar Usuário" : "Cadastrar Usuário"}

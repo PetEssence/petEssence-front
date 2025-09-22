@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
-import { Table, Card, Button, Input, Space, Modal, Form, message, Grid } from "antd";
+import {
+  Table,
+  Card,
+  Button,
+  Input,
+  Space,
+  Modal,
+  Form,
+  message,
+  Grid,
+  Spin,
+} from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
 import {
@@ -156,16 +167,20 @@ export default function Especie() {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <Table
-              columns={columns}
-              dataSource={filteredEspecies}
-              rowKey="id"
-              loading={loading}
-              locale={{ emptyText: "Não há registros." }}
-              scroll={{ x: true }}
-            />
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={columns}
+                dataSource={filteredEspecies}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
         </Card>
         <Modal
           title={editingEspecie ? "Editar Espécie" : "Cadastrar Espécie"}

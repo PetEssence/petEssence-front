@@ -12,6 +12,7 @@ import {
   Avatar,
   Upload,
   Grid,
+  Spin,
 } from "antd";
 import {
   ClearOutlined,
@@ -46,7 +47,7 @@ export default function Pet() {
   const [especies, setEspecies] = useState([]);
   const [racas, setRacas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
 
   const [textoFiltro, setTextoFiltro] = useState("");
   const [filtroRaca, setFiltroRaca] = useState(null);
@@ -410,65 +411,71 @@ export default function Pet() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredPet.length > 0 ? (
-              filteredPet.map((pet) => (
-                <Link to={`/pet/${pet.id}`} key={pet.id}>
-                  <Card
-                    key={pet.id}
-                    hoverable
-                    className="w-full"
-                    cover={
-                      <Avatar
-                        shape="square"
-                        size="large"
-                        src={pet.foto}
-                        className="object-contain"
-                        style={{ minHeight: 200, maxHeight: 200 }}
-                      />
-                    }
-                  >
-                    <Meta
-                      title={
-                        <div className="flex items-center justify-between">
-                          <span className="truncate">{pet.nome}</span>
-                          {pet.ativo ? (
-                            <Tag color="green" size="small">
-                              Ativo
-                            </Tag>
-                          ) : (
-                            <Tag color="red" size="small">
-                              Inativo
-                            </Tag>
-                          )}
-                        </div>
+          {carregando ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredPet.length > 0 ? (
+                filteredPet.map((pet) => (
+                  <Link to={`/pet/${pet.id}`} key={pet.id}>
+                    <Card
+                      key={pet.id}
+                      hoverable
+                      className="w-full"
+                      cover={
+                        <Avatar
+                          shape="square"
+                          size="large"
+                          src={pet.foto}
+                          className="object-contain"
+                          style={{ minHeight: 200, maxHeight: 200 }}
+                        />
                       }
-                      description={
-                        <div className="space-y-1">
-                          <div className="text-xs text-gray-500 truncate">
-                            Tutores:{" "}
-                            {pet.tutorAnimal.map(
-                              (id) => getOwnerName(id) + " - "
+                    >
+                      <Meta
+                        title={
+                          <div className="flex items-center justify-between">
+                            <span className="truncate">{pet.nome}</span>
+                            {pet.ativo ? (
+                              <Tag color="green" size="small">
+                                Ativo
+                              </Tag>
+                            ) : (
+                              <Tag color="red" size="small">
+                                Inativo
+                              </Tag>
                             )}
                           </div>
-                          <div className="text-xs text-gray-400">
-                            Raça: {getBreedName(pet.raca)}
+                        }
+                        description={
+                          <div className="space-y-1">
+                            <div className="text-xs text-gray-500 truncate">
+                              Tutores:{" "}
+                              {pet.tutorAnimal.map(
+                                (id) => getOwnerName(id) + " - "
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Raça: {getBreedName(pet.raca)}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Espécie: {getSpecieName(pet.especie)}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-400">
-                            Espécie: {getSpecieName(pet.especie)}
-                          </div>
-                        </div>
-                      }
-                    />
-                  </Card>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full text-center text-gray-300 py-8">
-                Não há registros.
-              </div>
-            )}
-          </div>
+                        }
+                      />
+                    </Card>
+                  </Link>
+                ))
+              ) : (
+                <div className="col-span-full text-center text-gray-300 py-8">
+                  Não há registros.
+                </div>
+              )}
+            </div>
+          )}
         </Card>
 
         <Modal

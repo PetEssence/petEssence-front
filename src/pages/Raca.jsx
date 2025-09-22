@@ -10,6 +10,7 @@ import {
   Form,
   message,
   Grid,
+  Spin,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -39,7 +40,7 @@ export default function Raca() {
   if (cargoUsuario == "cliente") {
     return <Navigate to="/acessoNegado" replace />;
   }
-  
+
   useEffect(() => {
     loadRacas();
   }, []);
@@ -166,16 +167,20 @@ export default function Raca() {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <Table
-              columns={columns}
-              dataSource={filteredRaças}
-              rowKey="id"
-              loading={loading}
-              locale={{ emptyText: "Não há registros." }}
-              scroll={{ x: true }}
-            />
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={columns}
+                dataSource={filteredRaças}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
         </Card>
 
         <Modal

@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./index.css";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, Spin } from "antd";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
@@ -32,7 +32,7 @@ const RotasProtegidas = ({ children }) => {
   if (carregando) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Carregando...
+        <Spin/>
       </div>
     );
   }
@@ -46,7 +46,7 @@ const RotasPublicas = ({ children }) => {
   if (carregando) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Carregando...
+        <Spin />
       </div>
     );
   }

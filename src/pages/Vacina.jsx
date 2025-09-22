@@ -10,6 +10,7 @@ import {
   message,
   Select,
   Grid,
+  Spin,
 } from "antd";
 import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import AppLayout from "../components/Layout";
@@ -54,7 +55,7 @@ export default function Vacina() {
     setCarregando(true);
     try {
       const data = await getDocs(vacinaCollectionRef);
-      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+      const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       setVacina(dataDoc);
     } catch (error) {
       message.error("Erro ao carregar vacinas");
@@ -204,15 +205,20 @@ export default function Vacina() {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <Table
-              columns={colunas}
-              dataSource={vacinasFiltradas}
-              rowKey="id"
-              loading={carregando}
-              scroll={{ x: true }}
-            />
-          </div>
+          {carregando ? (
+            <div className="flex items-center justify-center">
+              <Spin />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table
+                columns={colunas}
+                dataSource={vacinasFiltradas}
+                rowKey="id"
+                scroll={{ x: true }}
+              />
+            </div>
+          )}
         </Card>
 
         <Modal
@@ -237,7 +243,9 @@ export default function Vacina() {
             <Form.Item
               label="Doença alvo"
               name="doencaAlvo"
-              rules={[{ required: true, message: "Por favor, insira a doença alvo!" }]}
+              rules={[
+                { required: true, message: "Por favor, insira a doença alvo!" },
+              ]}
             >
               <Input />
             </Form.Item>
