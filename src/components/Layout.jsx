@@ -9,6 +9,7 @@ import {
   MenuUnfoldOutlined,
   TagsOutlined,
   CalendarOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -21,6 +22,7 @@ const { useBreakpoint } = Grid;
 
 export default function AppLayout({ children }) {
   const { usuario, logout, cargoUsuario } = useAuth();
+  const [carregando, setCarregando] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const screens = useBreakpoint();
@@ -47,9 +49,15 @@ export default function AppLayout({ children }) {
 
   const currentSiderWidth = screens.lg ? (collapsed ? 80 : 250) : 0;
   const headerHeight = screens.md ? 72 : 56;
-  const outerPadding = 16; 
+  const outerPadding = 16;
   const contentPadding = screens.xs ? 16 : 24;
 
+  useEffect(() => {
+    if (cargoUsuario !== undefined && cargoUsuario !== null) {
+      setCarregando(false);
+    }
+  }, [cargoUsuario]);
+  
   const menuItems = [
     {
       key: "/dashboard",
@@ -138,7 +146,11 @@ export default function AppLayout({ children }) {
         collapsedWidth={screens.lg ? 80 : 0}
         breakpoint="lg"
         onBreakpoint={(broken) => {
-          setCollapsed(broken ? true : JSON.parse(localStorage.getItem("sidebarCollapsed") ?? "false"));
+          setCollapsed(
+            broken
+              ? true
+              : JSON.parse(localStorage.getItem("sidebarCollapsed") ?? "false")
+          );
         }}
         className="fixed top-0 left-0 h-screen z-50 bg-primaryGreen"
         style={{ padding: 8 }}
@@ -159,13 +171,19 @@ export default function AppLayout({ children }) {
               </button>
             </div>
 
-            <Menu
-              theme="dark"
-              mode="inline"
-              selectedKeys={[location.pathname]}
-              className="bg-primaryGreen text-white font-bold"
-              items={filtraItensMenus}
-            />
+            {carregando ? (
+              <div className="flex items-center justify-center">
+                <LoadingOutlined spin size="small" color="#000" />
+              </div>
+            ) : (
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[location.pathname]}
+                className="bg-primaryGreen text-white font-bold"
+                items={filtraItensMenus}
+              />
+            )}
           </div>
 
           <div
