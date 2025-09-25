@@ -45,6 +45,7 @@ export default function AppLayout({ children }) {
       setCollapsed(true);
     }
   }, [screens]);
+
   const toggleCollapsed = () => setCollapsed(!collapsed);
 
   const currentSiderWidth = screens.lg ? (collapsed ? 80 : 250) : 0;
@@ -57,7 +58,7 @@ export default function AppLayout({ children }) {
       setCarregando(false);
     }
   }, [cargoUsuario]);
-  
+
   const menuItems = [
     {
       key: "/dashboard",
@@ -153,9 +154,13 @@ export default function AppLayout({ children }) {
           );
         }}
         className="fixed top-0 left-0 h-screen z-50 bg-primaryGreen"
-        style={{ padding: 8 }}
+        style={{ padding: screens.lg ? 8 : 0 }} 
       >
-        <div className="flex flex-col h-full justify-between rounded-lg bg-primaryGreen">
+        <div
+          className={`flex flex-col h-full justify-between bg-primaryGreen ${
+            screens.lg ? "rounded-lg" : "rounded-none"
+          }`} // 👉 arredondado só no desktop
+        >
           <div>
             <div className="flex items-center justify-between px-4 py-4">
               {!collapsed && (
@@ -196,10 +201,13 @@ export default function AppLayout({ children }) {
         </div>
       </Sider>
 
+      {/* MAIN */}
       <Layout
         style={{
           marginLeft: currentSiderWidth,
           transition: "margin-left 0.3s ease",
+          paddingLeft: screens.lg ? 0 : outerPadding, 
+          paddingRight: screens.lg ? 0 : outerPadding,
         }}
       >
         <Header
@@ -210,7 +218,7 @@ export default function AppLayout({ children }) {
             left: currentSiderWidth + outerPadding,
             width: `calc(100% - ${currentSiderWidth + outerPadding * 2}px)`,
             height: headerHeight,
-            borderRadius: 12,
+            borderRadius: screens.lg ? 12 : 0, 
             paddingLeft: screens.sm ? 32 : 16,
             paddingRight: screens.sm ? 32 : 16,
             display: "flex",
@@ -246,7 +254,9 @@ export default function AppLayout({ children }) {
             marginTop: headerHeight + outerPadding * 2,
             padding: contentPadding,
           }}
-          className="bg-white rounded-lg shadow-sm m-4"
+          className={`bg-white shadow-sm mb-4 ${
+            screens.lg ? "rounded-lg mx-4" : "rounded-none"
+          }`}
         >
           {children}
         </Content>

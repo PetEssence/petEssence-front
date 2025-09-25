@@ -469,7 +469,7 @@ export default function Pet() {
                 ))
               ) : (
                 <div className="col-span-full text-center text-gray-300 py-8">
-                  Não há registros.
+                  Não há dados.
                 </div>
               )}
             </div>
