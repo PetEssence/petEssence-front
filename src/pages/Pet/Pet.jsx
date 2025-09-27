@@ -486,6 +486,7 @@ export default function Pet() {
           onCancel={() => setModalVisivel(false)}
           width={screens.xs ? "95vw" : 700}
           style={{ top: screens.xs ? 8 : 24 }}
+          maskClosable={false}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item

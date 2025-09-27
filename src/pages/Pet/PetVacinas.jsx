@@ -431,6 +431,7 @@ export default function PetVacinas() {
             onCancel={() => setModalVisivel(false)}
             width={screens.xs ? "95vw" : 700}
             style={{ top: screens.xs ? 8 : 24 }}
+            maskClosable={false}
           >
             <Form form={form} layout="vertical" className="mt-4">
               <div className="w-full flex gap-0 justify-between flex-col md:flex-row md:gap-8">

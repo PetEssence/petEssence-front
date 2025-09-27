@@ -381,7 +381,8 @@ export default function Atendimento() {
                   <b>Pet:</b> {pegaNomePet(detalhesAtendimento.pet)}
                 </p>
                 <p>
-                  <b>Tutor(es):</b> {pegaTutoresAnimal(detalhesAtendimento.pet) + ", "}
+                  <b>Tutor(es):</b>{" "}
+                  {pegaTutoresAnimal(detalhesAtendimento.pet) + ", "}
                 </p>
               </div>
               <p>
@@ -425,6 +426,7 @@ export default function Atendimento() {
           onCancel={() => setModalVisivel(false)}
           width={screens.xs ? "95vw" : 700}
           style={{ top: screens.xs ? 8 : 24 }}
+          maskClosable={false}
         >
           <Form form={form} layout="vertical" className="mt-4 flex flex-col">
             <Form.Item
@@ -434,10 +436,7 @@ export default function Atendimento() {
                 { required: true, message: "Por favor, selecione o pet!" },
               ]}
             >
-              <Select
-                placeholder="Selecione o pet"
-                showSearch
-              >
+              <Select placeholder="Selecione o pet" showSearch>
                 {pets.map((pet) => (
                   <Select.Option key={pet.id} value={pet.id}>
                     {pet.nome} (
