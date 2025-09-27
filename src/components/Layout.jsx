@@ -153,13 +153,10 @@ export default function AppLayout({ children }) {
               : JSON.parse(localStorage.getItem("sidebarCollapsed") ?? "false")
           );
         }}
-        className="fixed top-0 left-0 h-screen z-50 bg-primaryGreen"
-        style={{ padding: screens.lg ? 8 : 0 }} 
+        className="fixed top-0 left-0 h-screen z-50 bg-primaryGreen p-0 md:p-2"
       >
         <div
-          className={`flex flex-col h-full justify-between bg-primaryGreen ${
-            screens.lg ? "rounded-lg" : "rounded-none"
-          }`} // 👉 arredondado só no desktop
+          className={"flex flex-col h-full justify-between bg-primaryGreen rounded-none md:rounded-lg"} 
         >
           <div>
             <div className="flex items-center justify-between px-4 py-4">
@@ -202,7 +199,7 @@ export default function AppLayout({ children }) {
       </Sider>
 
       {/* MAIN */}
-      <Layout
+      <Layout className="sm:px-"
         style={{
           marginLeft: currentSiderWidth,
           transition: "margin-left 0.3s ease",
