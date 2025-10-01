@@ -83,7 +83,6 @@ export default function PetMoreInfo() {
   }, [pet]);
 
   const consultarPet = async () => {
-    setCarregando(true);
     try {
       const docRef = doc(petCollectionRef, petId);
       const data = await getDoc(docRef);
@@ -97,13 +96,10 @@ export default function PetMoreInfo() {
           navigate("/acessoNegado", { replace: true });
         }
       }
-
       setPet(dataDoc);
       carregaDadosForm();
     } catch (error) {
       message.error("Erro ao carregar pet");
-    } finally {
-      setCarregando(false);
     }
   };
   useEffect(() => {
@@ -113,20 +109,24 @@ export default function PetMoreInfo() {
   }, [pet, usuarios]);
 
   const carregaDadosForm = () => {
-    setCarregando(true)
-    const formData = {
-      ...pet,
-      foto: pet.foto,
-      dataNasc: pet.dataNasc ? dayjs(pet.dataNasc) : null,
-      dataCriacao: pet.dataCriacao ? dayjs(pet.dataCriacao) : null,
-    };
-    if (formData.foto) {
-      setFoto(formData.foto);
-      setFezUploadFoto(true);
+    try {
+      const formData = {
+        ...pet,
+        foto: pet.foto,
+        dataNasc: pet.dataNasc ? dayjs(pet.dataNasc) : null,
+        dataCriacao: pet.dataCriacao ? dayjs(pet.dataCriacao) : null,
+      };
+      if (formData.foto) {
+        setFoto(formData.foto);
+        setFezUploadFoto(true);
+      }
+      setAtivo(formData.ativo);
+      form.setFieldsValue(formData);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setCarregando(false);
     }
-    setAtivo(formData.ativo);
-    form.setFieldsValue(formData);
-    setCarregando(false);
   };
 
   const listarEspecies = async () => {
@@ -419,7 +419,7 @@ export default function PetMoreInfo() {
       </Modal>
 
       <PetLayout petId={pet.id} />
-      {carregando ? (
+      {carregando || !pet?.id ? (
         <div className="flex items-center justify-center">
           <Spin />
         </div>
