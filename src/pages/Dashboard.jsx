@@ -276,7 +276,7 @@ export default function Dashboard() {
                   {atendimentosHoje.map((atendimento) => (
                     <div className="flex gap-2 mt-2">
                       <Avatar
-                        src={consultaPet(atendimento.pet).foto}
+                        src={consultaPet(atendimento.pet)?.foto}
                         size={{
                           xs: 24,
                           sm: 32,
@@ -289,7 +289,7 @@ export default function Dashboard() {
                         className="object-contain"
                       />
                       <div className="flex flex-col">
-                        <b>{consultaPet(atendimento.pet).nome}</b>
+                        <b>{consultaPet(atendimento.pet)?.nome}</b>
                         <p>
                           <b>Horário: </b>
                           {atendimento.horarioInicio} -{" "}

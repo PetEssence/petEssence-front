@@ -308,7 +308,7 @@ export default function Atendimento() {
 
   const pegaTutoresAnimal = (petId) => {
     const pet = pets.find((p) => p.id === petId);
-    return pet.tutorAnimal?.map((t) => pegaNomeUsuario(t));
+    return pet?  pet.tutorAnimal?.map((t) => pegaNomeUsuario(t)) : "Não encontrado";
   };
 
   const listaMobile = () => {
@@ -378,11 +378,11 @@ export default function Atendimento() {
             <div className="space-y-3 text-sm">
               <div className="flex flex-col sm:flex-row gap-4">
                 <p>
-                  <b>Pet:</b> {pegaNomePet(detalhesAtendimento.pet)}
+                  <b>Pet:</b> {pegaNomePet(detalhesAtendimento?.pet)}
                 </p>
                 <p>
                   <b>Tutor(es):</b>{" "}
-                  {pegaTutoresAnimal(detalhesAtendimento.pet) + ", "}
+                  {pegaTutoresAnimal(detalhesAtendimento?.pet) + ", "}
                 </p>
               </div>
               <p>
