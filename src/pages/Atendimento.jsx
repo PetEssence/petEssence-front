@@ -42,7 +42,7 @@ export default function Atendimento() {
   const [detalhesAtendimento, setDetalhesAtendimento] = useState(null);
   const [editando, setEditando] = useState(null);
   const [form] = Form.useForm();
-  const { cargoUsuario } = useAuth();
+  const { cargoUsuario, usuario } = useAuth();
   const atendimentoCollectionRef = collection(db, "atendimento");
   const usuarioCollectionRef = collection(db, "usuario");
   const petCollectionRef = collection(db, "pet");
@@ -79,7 +79,14 @@ export default function Atendimento() {
     try {
       const data = await getDocs(atendimentoCollectionRef);
       const dataDoc = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      setAtendimentos(dataDoc);
+      if (cargoUsuario == "cliente") {
+        const atendimentos = dataDoc.filter((atendimento) => {
+          verificaTutoresPet(atendimento.pet).includes(usuario.uid);
+        });
+        setAtendimentos(atendimentos);
+      } else {
+        setAtendimentos(dataDoc);
+      }
     } catch (error) {
       message.error("Erro ao carregar atendimentos");
     } finally {
@@ -308,7 +315,16 @@ export default function Atendimento() {
 
   const pegaTutoresAnimal = (petId) => {
     const pet = pets.find((p) => p.id === petId);
-    return pet?  pet.tutorAnimal?.map((t) => pegaNomeUsuario(t)) : "Não encontrado";
+    return pet
+      ? pet.tutorAnimal?.map((t) => pegaNomeUsuario(t))
+      : "Não encontrado";
+  };
+
+  const verificaTutoresPet = (petId) => {
+    const pet = pets.find((p) => p.id === petId);
+        return pet
+      ? pet.tutorAnimal?.map((t) => t)
+      : "Não encontrado";
   };
 
   const listaMobile = () => {
@@ -436,7 +452,11 @@ export default function Atendimento() {
                 { required: true, message: "Por favor, selecione o pet!" },
               ]}
             >
-              <Select placeholder="Selecione o pet" showSearch optionFilterProp="children">
+              <Select
+                placeholder="Selecione o pet"
+                showSearch
+                optionFilterProp="children"
+              >
                 {pets.map((pet) => (
                   <Select.Option key={pet.id} value={pet.id}>
                     {pet.nome} (
